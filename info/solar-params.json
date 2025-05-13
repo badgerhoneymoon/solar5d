@@ -1,0 +1,76 @@
+{
+    "sun": {
+      "name": "Sun",
+      "radius_km": 696340,
+      "distance_from_sun_million_km": 0,
+      "rotation_speed_kmh": 7200,
+      "orbital_speed_kms": 0,
+      "temperature_k": 5778
+    },
+    "planets": [
+      {
+        "name": "Mercury",
+        "radius_km": 2439.7,
+        "distance_from_sun_million_km": 57.9,
+        "rotation_speed_kmh": 10.89,
+        "orbital_speed_kms": 47.36,
+        "temperature_k": 440
+      },
+      {
+        "name": "Venus",
+        "radius_km": 6051.8,
+        "distance_from_sun_million_km": 108.2,
+        "rotation_speed_kmh": -6.52,
+        "orbital_speed_kms": 35.02,
+        "temperature_k": 737
+      },
+      {
+        "name": "Earth",
+        "radius_km": 6371,
+        "distance_from_sun_million_km": 149.6,
+        "rotation_speed_kmh": 1670,
+        "orbital_speed_kms": 29.78,
+        "temperature_k": 288
+      },
+      {
+        "name": "Mars",
+        "radius_km": 3389.5,
+        "distance_from_sun_million_km": 227.9,
+        "rotation_speed_kmh": 868,
+        "orbital_speed_kms": 24.07,
+        "temperature_k": 210
+      },
+      {
+        "name": "Jupiter",
+        "radius_km": 69911,
+        "distance_from_sun_million_km": 778.5,
+        "rotation_speed_kmh": 45000,
+        "orbital_speed_kms": 13.07,
+        "temperature_k": 165
+      },
+      {
+        "name": "Saturn",
+        "radius_km": 58232,
+        "distance_from_sun_million_km": 1434,
+        "rotation_speed_kmh": 35000,
+        "orbital_speed_kms": 9.69,
+        "temperature_k": 134
+      },
+      {
+        "name": "Uranus",
+        "radius_km": 25362,
+        "distance_from_sun_million_km": 2871,
+        "rotation_speed_kmh": -9360,
+        "orbital_speed_kms": 6.81,
+        "temperature_k": 76
+      },
+      {
+        "name": "Neptune",
+        "radius_km": 24622,
+        "distance_from_sun_million_km": 4495,
+        "rotation_speed_kmh": 9700,
+        "orbital_speed_kms": 5.43,
+        "temperature_k": 72
+      }
+    ]
+  }

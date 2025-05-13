@@ -1,0 +1,111 @@
+// =========================
+// Imports
+// =========================
+import * as THREE from 'three'
+import { temperatureToColor } from './temperatureToColor'
+
+// =========================
+// Configuration constants
+// =========================
+const SUN_SEGMENTS = 32;
+const PLANET_SEGMENTS = 24;
+
+// =========================
+// Type Definitions
+// =========================
+
+// Represents a celestial body (Sun or planet)
+interface Body {
+  name: string
+  radius_km: number
+  distance_from_sun_million_km: number
+  temperature_k: number
+}
+
+// Parameters for the solar system
+interface SolarParams {
+  sun: Body
+  planets: Body[]
+}
+
+// Scaling functions and constants
+interface Scales {
+  radius: (value: number, span?: number, offset?: number) => number
+  distance: (value: number, span?: number, offset?: number) => number
+  RADIUS_MIN: number
+  RADIUS_MAX: number
+}
+
+// =========================
+// Solar System Mesh Creation
+// =========================
+
+/**
+ * Creates THREE.Mesh objects for the Sun and all planets.
+ * @param params - Solar system parameters (sun and planets)
+ * @param scales - Scaling functions and constants
+ * @param planetSpread - Spread factor for planet distances
+ * @param startOffset - Offset for planet distances
+ * @returns Array of THREE.Mesh objects (Sun + planets)
+ */
+export function createSolarSystemObjects(
+  params: SolarParams,
+  scales: Scales,
+  planetSpread: number,
+  startOffset: number
+): THREE.Object3D[] {
+  const meshes: THREE.Object3D[] = []
+
+  // Find min/max temperature for planets only
+  const planetTemps = params.planets.map(p => p.temperature_k)
+  const minPlanetTemp = Math.min(...planetTemps)
+  const maxPlanetTemp = Math.max(...planetTemps)
+
+  // --- Sun ---
+  const sunRadius = scales.RADIUS_MIN + scales.radius(params.sun.radius_km, scales.RADIUS_MAX - scales.RADIUS_MIN)
+  const sunGeometry = new THREE.SphereGeometry(sunRadius, SUN_SEGMENTS, SUN_SEGMENTS)
+  // Sun: always yellow (or use its own temp, but it's always hottest)
+  const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
+  const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial)
+  sunMesh.position.set(0, 0, 0)
+  meshes.push(sunMesh)
+
+  // --- Planets & Orbits ---
+  const planetCount = params.planets.length
+  params.planets.forEach((planet, i) => {
+    const radius = scales.RADIUS_MIN + scales.radius(planet.radius_km, scales.RADIUS_MAX - scales.RADIUS_MIN)
+    const distance = scales.distance(planet.distance_from_sun_million_km, planetSpread, startOffset)
+
+    // Orbit (XZ plane)
+    const orbitSegments = 128
+    const orbitGeometry = new THREE.BufferGeometry()
+    const orbitVertices = []
+    for (let j = 0; j <= orbitSegments; j++) {
+      const theta = (j / orbitSegments) * Math.PI * 2
+      orbitVertices.push(
+        Math.cos(theta) * distance,
+        0,
+        Math.sin(theta) * distance
+      )
+    }
+    orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitVertices, 3))
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true })
+    const orbit = new THREE.Line(orbitGeometry, orbitMaterial)
+    meshes.push(orbit)
+
+    // Planet position: evenly spaced angle
+    const angle = (i / planetCount) * Math.PI * 2
+    const x = Math.cos(angle) * distance
+    const z = Math.sin(angle) * distance
+    const geometry = new THREE.SphereGeometry(radius, PLANET_SEGMENTS, PLANET_SEGMENTS)
+    
+    // Color by planet temperature (planet range only)
+    const color = temperatureToColor(planet.temperature_k, minPlanetTemp, maxPlanetTemp)
+    const material = new THREE.MeshBasicMaterial({ color, wireframe: true })
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(x, 0, z)
+    meshes.push(mesh)
+  })
+
+  return meshes
+}
