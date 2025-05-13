@@ -253,6 +253,7 @@ export class VoiceService extends EventEmitter {
    * @param call_id - The unique identifier of the function call this output corresponds to.
    * @param output - The result data from the function execution.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _sendFunctionOutput(call_id: string | undefined, output: any) {
     this._sendEvent({
       type: 'conversation.item.create',
@@ -273,8 +274,10 @@ export class VoiceService extends EventEmitter {
    * @param params - The parameters provided for the function call.
    * @param call_id - The unique identifier for this function call instance.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _handleFunctionCall(name: string, params: any, call_id: string) {
     let success = true; // Assume success unless validation fails
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let output: any = null;
     switch(name) {
       case 'generic_tool':
@@ -282,8 +285,7 @@ export class VoiceService extends EventEmitter {
         output = { result: `You sent: ${params?.input}` };
         break;
       default:
-        // Unknown tool
-        success = false;
+        success = false; // Unknown tool
         output = { error: 'Unknown tool' };
         break;
     }

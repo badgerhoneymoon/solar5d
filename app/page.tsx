@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
+
 import { useEffect, useRef, useState } from 'react'
 import { GUI } from 'lil-gui'
 import solarParams from '../info/solar-params.json'
@@ -21,6 +23,7 @@ export default function Home() {
   // Pause controls
   const guiOptions = useRef({ orbitPaused: false, spinPaused: false })
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const gui = new GUI()
     gui.title('Solar System Controls')

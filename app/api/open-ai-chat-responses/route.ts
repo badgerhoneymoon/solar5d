@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     }
     const response = await createAssistantResponse(prompt);
     return NextResponse.json({ result: response });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 } 

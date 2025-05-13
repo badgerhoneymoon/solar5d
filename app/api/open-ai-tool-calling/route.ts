@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Boilerplate for OpenAI function calling (tool use) using responses.create API.
 // Accepts a user message, lets the LLM call a single generic tool, and returns the final response.
 
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
     // If the LLM replied directly (no tool needed), return its answer
     const direct = response1.output_text || first.content || "";
     return NextResponse.json({ answer: direct, tool: null });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Failed to process chat" }, { status: 500 });
   }
 } 
