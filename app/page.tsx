@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { GUI } from 'lil-gui'
 import solarParams from '../info/solar-params.json'
-import { createScene, createCamera, createRenderer, createControls } from '../lib/three/setupScene'
+import { createScene, createCamera, createRenderer, createControls, setEquirectangularSkybox } from '../lib/three/setupScene'
 import { updateSolarSystem } from '../lib/three/tick'
 import { createSolarSystemObjects } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
@@ -13,7 +13,7 @@ import { handleResize } from '../lib/three/resize'
 import { PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/constants'
 import Overlay from '../components/Overlay'
 import { Clock } from 'three'
-import * as THREE from 'three'
+import ProgressIndicator from '../components/ui/ProgressIndicator'
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -23,6 +23,8 @@ export default function Home() {
   const timeMultiplier = 1000000
   // Pause controls
   const guiOptions = useRef({ orbitPaused: false, spinPaused: false })
+  const [skyboxProgress, setSkyboxProgress] = useState(0)
+  const [skyboxLoading, setSkyboxLoading] = useState(true)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -43,13 +45,12 @@ export default function Home() {
 
     // Scene setup
     const scene = createScene()
-    // Skybox: set equirectangular panoramic background
-    const loader = new THREE.TextureLoader();
-    loader.load('/textures/material_emissive.png', (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      texture.colorSpace = THREE.SRGBColorSpace;
-      scene.background = texture;
-    });
+    setEquirectangularSkybox(
+      scene,
+      '/textures/material_emissive.jpg',
+      (progress) => setSkyboxProgress(progress),
+      () => setSkyboxLoading(false)
+    )
     const camera = createCamera(sizes.width, sizes.height, 50)
     // Set camera to angled view (not top-down)
     camera.position.set(0, 70, 70)
@@ -100,6 +101,7 @@ export default function Home() {
 
   return (
     <>
+      <ProgressIndicator progress={skyboxProgress} visible={skyboxLoading} />
       <canvas
         ref={canvasRef}
         className="webgl fixed top-0 left-0 w-full h-full block"

@@ -28,3 +28,28 @@ export function createControls(camera: THREE.Camera, domElement: HTMLElement) {
   controls.enableDamping = true
   return controls
 }
+
+// Set an equirectangular panoramic skybox background
+export function setEquirectangularSkybox(
+  scene: THREE.Scene,
+  texturePath: string,
+  onProgress?: (progress: number) => void,
+  onLoad?: () => void
+) {
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    texturePath,
+    (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      scene.background = texture;
+      if (onLoad) onLoad();
+    },
+    (xhr) => {
+      if (onProgress && xhr.lengthComputable) {
+        const percent = (xhr.loaded / xhr.total) * 100;
+        onProgress(percent);
+      }
+    }
+  );
+}
