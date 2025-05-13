@@ -205,7 +205,7 @@ export class VoiceService extends EventEmitter {
 
     this.dataChannel.onerror = (error) => {
       // Emit errors specifically related to the data channel operation
-      this.emit('error', new Error('Data channel error: ' + error.error.message));
+      this.emit('error', new Error('Data channel error'));
     };
   }
 
