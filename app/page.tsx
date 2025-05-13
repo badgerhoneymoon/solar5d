@@ -42,6 +42,13 @@ export default function Home() {
 
     // Scene setup
     const scene = createScene()
+    // Skybox: set equirectangular panoramic background
+    const loader = new (require('three').TextureLoader)();
+    loader.load('/textures/material_emissive.png', (texture: any) => {
+      texture.mapping = require('three').EquirectangularReflectionMapping;
+      texture.colorSpace = require('three').SRGBColorSpace;
+      scene.background = texture;
+    });
     const camera = createCamera(sizes.width, sizes.height, 50)
     // Set camera to angled view (not top-down)
     camera.position.set(0, 70, 70)
