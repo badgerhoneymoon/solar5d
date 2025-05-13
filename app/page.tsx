@@ -11,7 +11,7 @@ import { createSolarSystemObjects } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
 import { handleResize } from '../lib/three/resize'
 import { PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/constants'
-import Overlay from '../components/ui/Overlay'
+import Overlay from '../components/Overlay'
 import { Clock } from 'three'
 
 export default function Home() {
