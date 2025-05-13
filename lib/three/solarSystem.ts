@@ -15,15 +15,17 @@ const PLANET_SEGMENTS = 24;
 // =========================
 
 // Represents a celestial body (Sun or planet)
-interface Body {
+export interface Body {
   name: string
   radius_km: number
   distance_from_sun_million_km: number
+  rotation_speed_kmh: number
+  orbital_speed_kms: number
   temperature_k: number
 }
 
 // Parameters for the solar system
-interface SolarParams {
+export interface SolarParams {
   sun: Body
   planets: Body[]
 }
@@ -68,6 +70,7 @@ export function createSolarSystemObjects(
   const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
   const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial)
   sunMesh.position.set(0, 0, 0)
+  sunMesh.name = params.sun.name
   meshes.push(sunMesh)
 
   // --- Planets & Orbits ---
@@ -88,9 +91,11 @@ export function createSolarSystemObjects(
         Math.sin(theta) * distance
       )
     }
+    
     orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitVertices, 3))
     const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true })
     const orbit = new THREE.Line(orbitGeometry, orbitMaterial)
+    orbit.name = `${planet.name}_orbit`
     meshes.push(orbit)
 
     // Planet position: evenly spaced angle
@@ -104,6 +109,13 @@ export function createSolarSystemObjects(
     const material = new THREE.MeshBasicMaterial({ color, wireframe: true })
     const mesh = new THREE.Mesh(geometry, material)
     mesh.position.set(x, 0, z)
+    mesh.name = planet.name
+    // marker for self-rotation visibility
+    const markerGeo = new THREE.SphereGeometry(radius * 0.1, 8, 8)
+    const markerMat = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    const markerMesh = new THREE.Mesh(markerGeo, markerMat)
+    markerMesh.position.set(radius, 0, 0)
+    mesh.add(markerMesh)
     meshes.push(mesh)
   })
 

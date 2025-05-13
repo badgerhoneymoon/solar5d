@@ -4,21 +4,29 @@ import { useEffect, useRef, useState } from 'react'
 import { GUI } from 'lil-gui'
 import solarParams from '../info/solar-params.json'
 import { createScene, createCamera, createRenderer, createControls } from '../lib/three/setupScene'
+import { updateSolarSystem } from '../lib/three/tick'
 import { createSolarSystemObjects } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
 import { handleResize } from '../lib/three/resize'
 import { PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/constants'
 import Overlay from '../components/ui/Overlay'
+import { Clock } from 'three'
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [planetSpread, setPlanetSpread] = useState(INIT_PLANET_SPREAD)
-  const [startOffset, setStartOffset] = useState(INIT_START_OFFSET)
+  const [startOffset] = useState(INIT_START_OFFSET)
+  // Scale up time for visible spin and orbit
+  const timeMultiplier = 1000000
+  // Pause controls
+  const guiOptions = useRef({ orbitPaused: false, spinPaused: false })
 
   useEffect(() => {
     const gui = new GUI()
     gui.title('Solar System Controls')
     gui.add({ planetSpread }, 'planetSpread', 10, 200, 1).onChange(setPlanetSpread)
+    gui.add(guiOptions.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptions.current.orbitPaused = v })
+    gui.add(guiOptions.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptions.current.spinPaused = v })
     return () => gui.destroy()
   }, [])
 
@@ -38,6 +46,7 @@ export default function Home() {
     scene.add(camera)
     const renderer = createRenderer(canvasRef.current as HTMLCanvasElement, sizes.width, sizes.height)
     const controls = createControls(camera, renderer.domElement)
+    const clock = new Clock()
 
     // Scaling and constants
     const scales = getSolarSystemScales(solarParams)
@@ -57,6 +66,8 @@ export default function Home() {
 
     // Animation loop
     const tick = () => {
+      const deltaSec = clock.getDelta() * timeMultiplier
+      updateSolarSystem(solarParams.planets, meshes, deltaSec, { orbitPaused: guiOptions.current.orbitPaused, spinPaused: guiOptions.current.spinPaused })
       controls.update()
       renderer.render(scene, camera)
       requestAnimationFrame(tick)
