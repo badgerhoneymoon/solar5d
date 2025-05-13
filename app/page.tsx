@@ -13,6 +13,7 @@ import { handleResize } from '../lib/three/resize'
 import { PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/constants'
 import Overlay from '../components/Overlay'
 import { Clock } from 'three'
+import * as THREE from 'three'
 
 export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -43,10 +44,10 @@ export default function Home() {
     // Scene setup
     const scene = createScene()
     // Skybox: set equirectangular panoramic background
-    const loader = new (require('three').TextureLoader)();
-    loader.load('/textures/material_emissive.png', (texture: any) => {
-      texture.mapping = require('three').EquirectangularReflectionMapping;
-      texture.colorSpace = require('three').SRGBColorSpace;
+    const loader = new THREE.TextureLoader();
+    loader.load('/textures/material_emissive.png', (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
       scene.background = texture;
     });
     const camera = createCamera(sizes.width, sizes.height, 50)
