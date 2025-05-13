@@ -1,0 +1,100 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Cursor Rules Index
+
+This document provides an overview of available rules and when to use them.
+
+## Project structure (`project-structure-rules.mdc`)
+**When to use** When creating new files and folders
+
+## Development Process Rules
+
+### General Rules (`general-rules.mdc`)
+**When to use**: For day-to-day development and maintaining code quality standards
+- Core development principles
+- Code standards (type safety, component usage)
+- Project maintenance guidelines
+- Development workflow best practices
+- Mobile-first development requirements
+
+### Deep Breath Rules (`deep-breath-rules.mdc`)
+**When to use**: Before starting complex tasks or when feeling overwhelmed
+- Guidelines for approaching complex problems
+- Decision-making framework
+- Best practices for maintaining clarity
+
+### Plan Feature Rules (`plan-feature-rules.mdc`)
+**When to use**: Before implementing new features or major changes
+- Feature planning guidelines
+- Requirements gathering
+- Implementation strategy
+- Testing considerations
+
+## Code Quality Rules
+
+### Cleanup Rules (`cleanup-rules.mdc`)
+**When to use**: During code cleanup, refactoring, or maintenance
+- Code cleanup guidelines
+- Dead code removal
+- Performance optimization
+- Technical debt management
+
+### Refactor Rules (`refactor-rules.mdc`)
+**When to use**: When restructuring or improving existing code
+- Code refactoring guidelines
+- Best practices for code improvement
+- Pattern implementation
+- Code organization
+
+## Database and Schema Rules
+
+### Schema Rules (`schema-rules.mdc`)
+**When to use**: When working with database schemas, queries, or migrations
+- Database structure and flow
+- Schema creation and modification
+- CRUD operations guidelines
+- Database configuration
+- Migration procedures
+- Environment setup
+
+### Cursor Rules (`cursor-rules.mdc`)
+**When to use**: For creating new cursor rules
+- Editor-specific guidelines
+- Workflow optimization
+- Tool usage best practices
+- IDE configuration
+
+## Integration Rules
+
+### Telegram Bot Rules (`telegram-bot-rules.mdc`)
+**When to use**: When setting up, configuring, or troubleshooting Telegram bot integration for notifications or user verification
+- Step-by-step Telegram bot setup
+- Webhook configuration and security
+- Example code for sending messages and handling webhooks
+- Troubleshooting tips
+
+## Testing Rules
+
+### Unit Test Rules (`unit-test-rules.mdc`)
+**When to use**: When writing, running, or maintaining unit tests
+- Test file organization and naming
+- Using Vitest for testing
+- Running and configuring tests
+- Best practices for reliable tests
+
+## Quick Reference
+
+1. Starting a new feature? → `plan-feature-rules.mdc`
+2. Need to clean up code? → `cleanup-rules.mdc`
+3. Working with database? → `schema-rules.mdc`
+4. Feeling stuck? → `deep-breath-rules.mdc`
+5. Improving existing code? → `refactor-rules.mdc`
+6. Day-to-day development? → `general-rules.mdc`
+7. IDE optimization? → `cursor-rules.mdc`
+8. Setting up Telegram bot? → `telegram-bot-rules.mdc`
+9. Writing or running tests? → `unit-test-rules.mdc`
+
+Remember: These rules are designed to work together. Often you'll need to reference multiple rule sets for a single task. Always start with the most relevant rule set for your current task, then consult others as needed.

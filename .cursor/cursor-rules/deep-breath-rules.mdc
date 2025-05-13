@@ -1,0 +1,56 @@
+---
+description: When we are stuck and running in circles and need a way out
+globs: 
+alwaysApply: false
+---
+# Core Problem-Solving Principles
+- Aim to make a precise fix adhering to KISS principle
+- Don't rush into solutions without understanding the system
+- When initial solutions fail, step back and analyze
+- Focus on root causes rather than symptoms
+- Start with simple core solutions before handling edge cases
++ Performance bottlenecks can stem from environment differences (local vs. production) as much as code; test in production-like environments.
++ Never use timeouts or arbitrary delays as solutions for component synchronization - they are fragile and unpredictable
+
+# Testing and Debugging Strategy
+- Test thoroughly after each significant change
+- Use available MCP tools and strategic logs to figure out the root cause
+- Strategic logging should target transition points where data changes form
+- Debug full-stack issues by investigating both frontend and backend
++ Analyze detailed timing logs to pinpoint performance issues, especially with parallel operations.
++ When testing performance changes, compare results across different environments (local, staging, production).
+
+# Data Flow and State Management
+- Trace data flow completely from origin to rendering
+- Handle special cases early in the flow with early returns
+- Data declaration order is not the same as UI rendering order - track parent to child flow
+- Differentiate filtering (which items to show) from ordering (sequence of display)
++ Be wary of database contention: running many queries in parallel, even simple ones, can be slower than sequential execution due to resource competition.
++ Consider batching database operations: group by complexity and run simple batches in parallel, complex batches sequentially, to optimize throughput.
++ Prefer props over refs for component communication - props are predictable and type-safe
++ Transform data at boundaries where type changes are needed, not deep in components
++ Avoid imperative component manipulation (like refs) when declarative approaches (like props) can work
+
+# Component Architecture and UI Logic
+- Look beyond API responses - check component conditional logic and hierarchy
+- Component hierarchies must maintain consistent data models
+- When fixing display issues, implement changes at all levels of the component tree
+- Check component props and interfaces before making changes that affect multiple instances
++ When components need to share data, lift state up and pass it down rather than using refs or imperative handles
++ Type safety between components is crucial - ensure proper type definitions at component boundaries
+
+# UI Styling Best Practices
+- When styling third-party components:
+  1. Understand their internal structure first
+  2. Use component inspection to identify style targets
+  3. Start with the most specific selectors (e.g., [&>*] for direct children)
+  4. Consider stacking context (relative positioning) and z-index
+- Handle visibility and contrast:
+  1. Check component's base styling
+  2. Use child selectors for stubborn overrides
+  3. Ensure proper text contrast, especially with gradients
+  4. Handle all states (default, hover, disabled)
+- Maintain consistency:
+  1. Reuse existing color schemes and gradients
+  2. Follow established design patterns
+  3. Apply similar styling to related components

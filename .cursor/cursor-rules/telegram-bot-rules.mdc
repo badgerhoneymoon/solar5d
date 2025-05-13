@@ -1,0 +1,96 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Setting Up Telegram Bot Integration
+
+This rule documents how to set up and connect a Telegram bot for sending notifications and handling user verification.
+
+## 1. Create a Telegram Bot
+
+1. Open Telegram and search for @@BotFather.
+2. Use `/newbot` to create a new bot and follow the instructions.
+3. Save the **bot token** provided by BotFather.
+
+## 2. Configure Environment Variables
+
+Add the following to your `.env` file:
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+WEBHOOK_SECRET=your_webhook_secret_here
+```
+
+- `TELEGRAM_BOT_TOKEN`: The token from BotFather.
+- `WEBHOOK_SECRET`: Any strong secret string for securing the webhook.
+
+## 3. Set Up the Webhook
+
+1. Deploy your API endpoint (e.g., `/api/telegram-webhook`).
+2. Set the webhook URL for your bot:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://your-domain.com/api/telegram-webhook"}'
+```
+
+Replace `your-domain.com` and `<TELEGRAM_BOT_TOKEN>` accordingly.
+
+## 4. How It Works
+
+- **User Verification**: Users start a chat with the bot and send their email (or other identifier). The backend verifies the identifier and links the Telegram chat ID to the user.
+- **Sending Notifications**: The backend sends notifications using the `sendTelegramMessage` function.
+- **Webhook Security**: The webhook checks `WEBHOOK_SECRET` for secure events.
+
+## 5. Testing
+
+- Start a chat with your bot and send `/start`.
+- Send your identifier (e.g., email) to verify.
+- Trigger a notification (see backend logic in your webhook handler).
+
+## 6. Troubleshooting
+
+- Check logs for errors if messages are not sent.
+- Ensure the bot token and webhook URL are correct.
+- Make sure the user has enabled Telegram notifications and has a valid chat ID.
+
+## Example Code
+
+**Sending a message (core logic):**
+```typescript
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+
+export async function sendTelegramMessage(chatId: string, text: string): Promise<void> {
+  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+  await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+  });
+}
+```
+
+**Webhook handler (core logic):**
+```typescript
+import { sendTelegramMessage } from './telegram-service';
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  if (body.message?.chat?.id) {
+    const chatId = body.message.chat.id;
+    const text = body.message.text || '';
+    if (text === '/start') {
+      await sendTelegramMessage(String(chatId), 'Welcome to the bot!');
+      return;
+    }
+    // ... handle identifier verification, etc.
+  }
+  // ... handle other webhook events, etc.
+}
+```
+
+---
+
+This rule ensures Telegram bot setup is consistent, secure, and easy to follow for any project. 

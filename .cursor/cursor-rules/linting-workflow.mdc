@@ -1,0 +1,39 @@
+---
+description: How to run lint, manually fix issues, and verify a clean codebase
+globs: 
+alwaysApply: false
+---
+---
+# Linting Workflow
+
+description: How to run lint, manually fix issues, and verify a clean codebase
+alwaysApply: false
+
+defaultGlobs:
+  - '**/*.ts'
+  - '**/*.tsx'
+  - '**/*.js'
+  - '**/*.jsx'
+
+## How to Run and Fix Lint
+
+1. **Run lint:**
+   ```bash
+   npm run lint
+   ```
+   Checks the codebase for lint errors and warnings.
+
+2. **Manually fix all issues:**
+   - Open the files with warnings/errors
+   - Edit the code to resolve every issue (do not ignore or suppress unless absolutely necessary)
+   - Never use underscores to fix unused variable linter warnings
+   - Do not rely on any autofix—manual intervention is always required
+
+3. **Re-run lint to verify:**
+   ```bash
+   npm run lint
+   ```
+   Ensure there are no remaining warnings or errors. Repeat manual fixes as needed.
+
+4. **Repeat as needed:**
+   Continue fixing and re-running until lint is 100% clean. No excuses—always deliver a clean result.

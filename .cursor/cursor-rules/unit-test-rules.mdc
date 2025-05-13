@@ -1,0 +1,82 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Unit Testing Guidelines
+
+This rule explains how to create and run unit tests for this project. All tests should be placed in the `tests/` directory and follow the naming convention `*.test.ts`.
+
+## Creating Unit Tests
+
+1. Place all test files in the `tests/` directory.
+2. Name your test files with the `.test.ts` suffix (e.g., `calculateReminderTime.test.ts`).
+3. Use [Vitest](mdc:https:/vitest.dev) for writing tests. Import from `vitest` for describe/it/expect, etc.
+4. Test files should import the functions/modules to be tested using absolute or relative imports.
+5. Write clear, isolated test cases. Use `describe` blocks for grouping and `it` for individual cases.
+6. Use mocks and stubs as needed (see `vi` from Vitest for mocking).
+
+Example (see `tests/calculateReminderTime.test.ts`):
+```ts
+import { describe, it, expect, vi } from 'vitest';
+import { calculateReminderTime } from '@/lib/utils/date-utils';
+
+describe('calculateReminderTime', () => {
+  it('should compute reminder time correctly', () => {
+    // ...test logic...
+  });
+});
+```
+
+## Running Unit Tests
+
+- To run all tests:
+  ```bash
+  npm test
+  # or
+  npx vitest
+  ```
+- To run tests in watch mode (auto-restart on file changes):
+  ```bash
+  npx vitest --watch
+  ```
+- To run a specific test file:
+  ```bash
+  npx vitest tests/calculateReminderTime.test.ts
+  ```
+
+## Configuration
+- Test runner: [Vitest](mdc:https:/vitest.dev)
+- All test-related scripts are defined in `package.json` under `scripts` (see the `test` script).
+- No need to start the dev server for running tests.
+
+## package.json Setup (Required)
+
+1. **Install Vitest as a dev dependency:**
+   ```bash
+   npm install --save-dev vitest
+   ```
+2. **Add scripts to your `package.json`:**
+   ```json
+   "scripts": {
+     "test": "vitest",
+     "test:watch": "vitest --watch"
+   }
+   ```
+3. **(Optional) Generate a Vitest config file for custom setup:**
+   ```bash
+   npx vitest config
+   ```
+   This creates `vitest.config.ts` or `vitest.config.js` for advanced options (not required for basic usage).
+
+Vitest will automatically find all files matching `*.test.ts` in your `tests/` directory.
+
+## Best Practices
+- Keep tests concise and focused.
+- Mock time and dependencies where needed for deterministic results.
+- Ensure tests are reliable and repeatable.
+- Add new tests for every new feature or bug fix.
+
+---
+
+For more details, see `tests/calculateReminderTime.test.ts` and `package.json`. 

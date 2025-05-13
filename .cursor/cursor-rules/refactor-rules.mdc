@@ -1,0 +1,60 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Code Refactoring Request
+
+## Current Issue
+This file feels overly complex and difficult to navigate. I need help simplifying it while maintaining functionality.
+
+## Your Tasks
+1. Analyze this code for unnecessary complexity:
+   - Identify any redundant functions, classes, or logic
+   - Highlight overly abstract patterns that complicate readability
+   - Look for unnecessarily nested structures
+   - Check for unused code or variables
+   - Verify dependencies between functions before parallelizing
+
+2. Understand the context:
+   - Examine how this file connects with other components
+   - Note key dependencies and interfaces
+   - Preserve essential integration points
+   - Map out data flow and dependencies between functions
+   - Check if functions are used externally before removing them
+
+3. Refactor with simplicity in mind:
+   - Prioritize readability over clever solutions
+   - Remove unnecessary abstractions
+   - Consolidate similar functionality
+   - Create helper functions only if they will be used multiple times
+   - Be cautious with Promise.all() - verify data dependencies first
+   - Check if async functions actually contain async operations
+
+4. Improve organization:
+   - Add clear section comments for navigation
+   - Group related functions together
+   - Include purpose comments for complex sections
+   - Consider creating lookup maps/handlers for similar operations
+   - Document dependencies between functions in comments
+   - Use consistent naming patterns for related functions
+
+## Specific Guidance
+- IMPORTANT: Never modify UI components or anything that affects user interface
+- Preserve all existing functionality exactly as is
+- Prefer direct approaches over complex patterns when possible
+- Maintain existing functionality while reducing complexity
+- Focus on making the code maintainable for future developers
+- Avoid introducing new dependencies unless absolutely necessary
+- If something seems complex but serves a purpose, explain it with a comment rather than changing it
+- Provide a brief summary of what was simplified and why
+- Don't create helper functions unless they will be used at least 3 times
+- Be careful with parallel execution - map out data dependencies first
+- Test refactored code paths to ensure functionality is preserved
+- Document any assumptions about data flow or dependencies
+- Check if async functions actually need to be async - make them synchronous if possible
+- Verify that Promise.all() calls don't create duplicate database queries
+- Add proper type definitions to improve code clarity and catch errors
+- Use consistent error handling patterns throughout the code
+- Consider extracting repetitive patterns into reusable utility functions
+- Ensure consistent return types for similar functions
