@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # General Development Guidelines
 
@@ -13,6 +13,7 @@ Our project is a mobile-first web app that prioritizes precision, simplicity, an
 2. Implement the simplest solution that fulfills all requirements
 3. Minimize code complexity and line count while meeting specifications
 4. Never add functionality or features that weren't explicitly requested
+5. No spaghetti code - use helper, util, component files
 
 ## Code Standards
 

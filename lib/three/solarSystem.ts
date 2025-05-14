@@ -22,6 +22,7 @@ export interface Body {
   rotation_speed_kmh: number
   orbital_speed_kms: number
   temperature_k: number
+  axis_angle_deg?: number
 }
 
 // Parameters for the solar system
@@ -71,6 +72,19 @@ export function createSolarSystemObjects(
   const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial)
   sunMesh.position.set(0, 0, 0)
   sunMesh.name = params.sun.name
+  // Tilt the sun around its local X-axis
+  const sunTiltRad = THREE.MathUtils.degToRad(params.sun.axis_angle_deg ?? 0)
+  sunMesh.rotateX(sunTiltRad)
+  // Axis line for Sun's rotation axis
+  const sunAxisLength = sunRadius * 2
+  const sunAxisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
+  const sunAxisGeometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, -sunAxisLength, 0),
+    new THREE.Vector3(0, sunAxisLength, 0)
+  ])
+  const sunAxisLine = new THREE.Line(sunAxisGeometry, sunAxisMaterial)
+  sunAxisLine.name = `${params.sun.name}_axis`
+  sunMesh.add(sunAxisLine)
   meshes.push(sunMesh)
 
   // --- Planets & Orbits ---
@@ -110,12 +124,28 @@ export function createSolarSystemObjects(
     const mesh = new THREE.Mesh(geometry, material)
     mesh.position.set(x, 0, z)
     mesh.name = planet.name
+    // Tilt the planet around its local X-axis
+    const tiltRad = THREE.MathUtils.degToRad(planet.axis_angle_deg ?? 0)
+    mesh.rotateX(tiltRad)
+    // Axis line for planet's rotation axis
+    const axisLength = radius * 2
+    const axisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
+    const axisGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, -axisLength, 0),
+      new THREE.Vector3(0, axisLength, 0)
+    ])
+    const axisLine = new THREE.Line(axisGeometry, axisMaterial)
+    axisLine.name = `${planet.name}_axis`
+    mesh.add(axisLine)
     // marker for self-rotation visibility
     const markerGeo = new THREE.SphereGeometry(radius * 0.1, 8, 8)
     const markerMat = new THREE.MeshBasicMaterial({ color: 0xff0000 })
     const markerMesh = new THREE.Mesh(markerGeo, markerMat)
     markerMesh.position.set(radius, 0, 0)
     mesh.add(markerMesh)
+    // Tag for CSS2D label (handled externally)
+    mesh.userData.labelOffset = radius * 1.2
+    mesh.userData.labelText = planet.name
     meshes.push(mesh)
   })
 

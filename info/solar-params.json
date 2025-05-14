@@ -5,7 +5,8 @@
       "distance_from_sun_million_km": 0,
       "rotation_speed_kmh": 7200,
       "orbital_speed_kms": 0,
-      "temperature_k": 5778
+      "temperature_k": 5778,
+      "axis_angle_deg": 7.25
     },
     "planets": [
       {
@@ -14,7 +15,8 @@
         "distance_from_sun_million_km": 57.9,
         "rotation_speed_kmh": 10.89,
         "orbital_speed_kms": 47.36,
-        "temperature_k": 440
+        "temperature_k": 440,
+        "axis_angle_deg": 0.034
       },
       {
         "name": "Venus",
@@ -22,7 +24,8 @@
         "distance_from_sun_million_km": 108.2,
         "rotation_speed_kmh": -6.52,
         "orbital_speed_kms": 35.02,
-        "temperature_k": 737
+        "temperature_k": 737,
+        "axis_angle_deg": 177.4
       },
       {
         "name": "Earth",
@@ -30,7 +33,8 @@
         "distance_from_sun_million_km": 149.6,
         "rotation_speed_kmh": 1670,
         "orbital_speed_kms": 29.78,
-        "temperature_k": 288
+        "temperature_k": 288,
+        "axis_angle_deg": 23.44
       },
       {
         "name": "Mars",
@@ -38,7 +42,8 @@
         "distance_from_sun_million_km": 227.9,
         "rotation_speed_kmh": 868,
         "orbital_speed_kms": 24.07,
-        "temperature_k": 210
+        "temperature_k": 210,
+        "axis_angle_deg": 25.19
       },
       {
         "name": "Jupiter",
@@ -46,7 +51,8 @@
         "distance_from_sun_million_km": 778.5,
         "rotation_speed_kmh": 45000,
         "orbital_speed_kms": 13.07,
-        "temperature_k": 165
+        "temperature_k": 165,
+        "axis_angle_deg": 3.13
       },
       {
         "name": "Saturn",
@@ -54,7 +60,8 @@
         "distance_from_sun_million_km": 1434,
         "rotation_speed_kmh": 35000,
         "orbital_speed_kms": 9.69,
-        "temperature_k": 134
+        "temperature_k": 134,
+        "axis_angle_deg": 26.73
       },
       {
         "name": "Uranus",
@@ -62,7 +69,8 @@
         "distance_from_sun_million_km": 2871,
         "rotation_speed_kmh": -9360,
         "orbital_speed_kms": 6.81,
-        "temperature_k": 76
+        "temperature_k": 76,
+        "axis_angle_deg": 97.77
       },
       {
         "name": "Neptune",
@@ -70,7 +78,8 @@
         "distance_from_sun_million_km": 4495,
         "rotation_speed_kmh": 9700,
         "orbital_speed_kms": 5.43,
-        "temperature_k": 72
+        "temperature_k": 72,
+        "axis_angle_deg": 28.32
       }
     ]
   }
