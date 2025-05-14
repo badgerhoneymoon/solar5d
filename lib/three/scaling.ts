@@ -1,6 +1,6 @@
 // Scaling setup for solar system visualization
 import { makeLogScale } from '../utils/math'
-import { RADIUS_MIN, RADIUS_MAX } from './constants'
+import { RADIUS_MIN, RADIUS_MAX } from './visualConstants'
 
 interface Body {
   radius_km: number

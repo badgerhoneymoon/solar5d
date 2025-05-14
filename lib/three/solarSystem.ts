@@ -3,12 +3,28 @@
 // =========================
 import * as THREE from 'three'
 import { temperatureToColor } from './temperatureToColor'
+import { RADIUS_MIN, RADIUS_MAX } from './visualConstants'
 
 // =========================
-// Configuration constants
+// Visual scaling/layout constants
 // =========================
-const SUN_SEGMENTS = 32;
-const PLANET_SEGMENTS = 24;
+export const PLANET_SPREAD = 160; // Distance factor between planet orbits (affects spacing)
+export const START_OFFSET = 10;   // Offset for Mercury's distance (shifts all orbits outward)
+
+// =========================
+// Solar system mesh/visual constants
+// =========================
+const SUN_SEGMENTS = 32; // Number of segments for the sun's sphere geometry (smoothness)
+const PLANET_SEGMENTS = 24; // Number of segments for planet sphere geometry (smoothness)
+const ORBIT_SEGMENTS = 128; // Number of segments for orbit line geometry (smoothness of orbit circle)
+const ORBIT_COLOR = 'white'; // Color of the orbit lines (white)
+const ORBIT_OPACITY = 0.3; // Opacity of the orbit lines (semi-transparent)
+const ORBIT_TRANSPARENT = true; // Whether orbit lines are rendered as transparent
+const AXIS_COLOR = 'lime'; // Color for rotation axis lines (green)
+const SUN_COLOR = 'yellow'; // Color for the sun mesh (yellow)
+const PLANET_MARKER_COLOR = 'red'; // Color for the planet rotation marker (red)
+const PLANET_MARKER_RADIUS_FACTOR = 0.1; // Size of the planet marker as a fraction of planet radius
+const PLANET_MARKER_SEGMENTS = 8; // Number of segments for the marker sphere geometry
 
 // =========================
 // Type Definitions
@@ -35,8 +51,6 @@ export interface SolarParams {
 interface Scales {
   radius: (value: number, span?: number, offset?: number) => number
   distance: (value: number, span?: number, offset?: number) => number
-  RADIUS_MIN: number
-  RADIUS_MAX: number
 }
 
 // =========================
@@ -65,10 +79,10 @@ export function createSolarSystemObjects(
   const maxPlanetTemp = Math.max(...planetTemps)
 
   // --- Sun ---
-  const sunRadius = scales.RADIUS_MIN + scales.radius(params.sun.radius_km, scales.RADIUS_MAX - scales.RADIUS_MIN)
+  const sunRadius = RADIUS_MIN + scales.radius(params.sun.radius_km, RADIUS_MAX - RADIUS_MIN)
   const sunGeometry = new THREE.SphereGeometry(sunRadius, SUN_SEGMENTS, SUN_SEGMENTS)
   // Sun: always yellow (or use its own temp, but it's always hottest)
-  const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
+  const sunMaterial = new THREE.MeshBasicMaterial({ color: SUN_COLOR, wireframe: true })
   const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial)
   sunMesh.position.set(0, 0, 0)
   sunMesh.name = params.sun.name
@@ -77,7 +91,7 @@ export function createSolarSystemObjects(
   sunMesh.rotateX(sunTiltRad)
   // Axis line for Sun's rotation axis
   const sunAxisLength = sunRadius * 2
-  const sunAxisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
+  const sunAxisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR })
   const sunAxisGeometry = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(0, -sunAxisLength, 0),
     new THREE.Vector3(0, sunAxisLength, 0)
@@ -90,15 +104,14 @@ export function createSolarSystemObjects(
   // --- Planets & Orbits ---
   const planetCount = params.planets.length
   params.planets.forEach((planet, i) => {
-    const radius = scales.RADIUS_MIN + scales.radius(planet.radius_km, scales.RADIUS_MAX - scales.RADIUS_MIN)
+    const radius = RADIUS_MIN + scales.radius(planet.radius_km, RADIUS_MAX - RADIUS_MIN)
     const distance = scales.distance(planet.distance_from_sun_million_km, planetSpread, startOffset)
 
     // Orbit (XZ plane)
-    const orbitSegments = 128
     const orbitGeometry = new THREE.BufferGeometry()
     const orbitVertices = []
-    for (let j = 0; j <= orbitSegments; j++) {
-      const theta = (j / orbitSegments) * Math.PI * 2
+    for (let j = 0; j <= ORBIT_SEGMENTS; j++) {
+      const theta = (j / ORBIT_SEGMENTS) * Math.PI * 2
       orbitVertices.push(
         Math.cos(theta) * distance,
         0,
@@ -107,7 +120,7 @@ export function createSolarSystemObjects(
     }
     
     orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(orbitVertices, 3))
-    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true })
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: ORBIT_COLOR, opacity: ORBIT_OPACITY, transparent: ORBIT_TRANSPARENT })
     const orbit = new THREE.Line(orbitGeometry, orbitMaterial)
     orbit.name = `${planet.name}_orbit`
     meshes.push(orbit)
@@ -129,7 +142,7 @@ export function createSolarSystemObjects(
     mesh.rotateX(tiltRad)
     // Axis line for planet's rotation axis
     const axisLength = radius * 2
-    const axisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
+    const axisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR })
     const axisGeometry = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(0, -axisLength, 0),
       new THREE.Vector3(0, axisLength, 0)
@@ -138,8 +151,8 @@ export function createSolarSystemObjects(
     axisLine.name = `${planet.name}_axis`
     mesh.add(axisLine)
     // marker for self-rotation visibility
-    const markerGeo = new THREE.SphereGeometry(radius * 0.1, 8, 8)
-    const markerMat = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    const markerGeo = new THREE.SphereGeometry(radius * PLANET_MARKER_RADIUS_FACTOR, PLANET_MARKER_SEGMENTS, PLANET_MARKER_SEGMENTS)
+    const markerMat = new THREE.MeshBasicMaterial({ color: PLANET_MARKER_COLOR })
     const markerMesh = new THREE.Mesh(markerGeo, markerMat)
     markerMesh.position.set(radius, 0, 0)
     mesh.add(markerMesh)

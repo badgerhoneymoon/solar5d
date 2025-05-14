@@ -1,118 +1,126 @@
+// This is the main entry point for the solar system visualization page
 'use client'
 
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 
-import { useEffect, useRef, useState } from 'react'
-import { GUI } from 'lil-gui'
+import { useEffect, useRef, useState, CSSProperties } from 'react'
 import solarParams from '../info/solar-params.json'
-import { createScene, createCamera, createRenderer, createControls, setEquirectangularSkybox } from '../lib/three/setupScene'
+import { createScene, createSolarCamera, createRenderer, createControls, setEquirectangularSkybox, CAMERA_FOV } from '../lib/three/setupScene'
 import { updateSolarSystem } from '../lib/three/tick'
-import { createSolarSystemObjects } from '../lib/three/solarSystem'
+import { createSolarSystemObjects, PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
 import { handleResize } from '../lib/three/resize'
-import { PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/constants'
 import Overlay from '../components/Overlay'
 import { Clock } from 'three'
 import ProgressIndicator from '../components/ui/ProgressIndicator'
-import { LabelManager } from '../lib/three/labels'
+import { LabelManager, LABEL_FONT_SIZE, LABEL_PADDING } from '../lib/three/labels'
 import { cleanupThreeScene } from '../lib/three/cleanup'
+import { setupSolarSystemGUI } from '../lib/three/gui'
 
+// --- CONSTANTS ---
+const TIME_MULTIPLIER = 1e6
+const SKYBOX_TEXTURE_PATH = '/textures/material_emissive.jpg'
+const CANVAS_CLASSNAME = 'webgl'
+const CANVAS_STYLE: CSSProperties = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }
+const CONTAINER_STYLE: CSSProperties = { position: 'relative', width: '100vw', height: '100vh' }
+
+// --- MAIN PAGE COMPONENT ---
 export default function Home() {
+  // --- REFS ---
+  // Refs for canvas and container DOM elements
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  // --- STATE ---
+  // State for controlling planet spread (distance between planets)
   const [planetSpread, setPlanetSpread] = useState(INIT_PLANET_SPREAD)
+  // State for initial offset of planets (not currently updated after mount)
   const [startOffset] = useState(INIT_START_OFFSET)
-  // Scale up time for visible spin and orbit
-  const timeMultiplier = 1000000
-  // Pause controls
+  // Multiplier to speed up time for visible spin and orbit animations
+  const timeMultiplier = TIME_MULTIPLIER
+  // GUI options for pausing orbit and spin
   const guiOptions = useRef({ orbitPaused: false, spinPaused: false })
+  // State for skybox loading progress and visibility
   const [skyboxProgress, setSkyboxProgress] = useState(0)
   const [skyboxLoading, setSkyboxLoading] = useState(true)
 
-  // (no ref needed; using LabelManager)
-
+  // --- GUI SETUP EFFECT ---
+  // Set up the solar system GUI (lil-gui) once on mount
+  // Returns a cleanup function to destroy the GUI on unmount
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const gui = new GUI()
-    gui.title('Solar System Controls')
-    gui.add({ planetSpread }, 'planetSpread', 10, 200, 1).onChange(setPlanetSpread)
-    gui.add(guiOptions.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptions.current.orbitPaused = v })
-    gui.add(guiOptions.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptions.current.spinPaused = v })
-    return () => gui.destroy()
+    return setupSolarSystemGUI(planetSpread, setPlanetSpread, guiOptions)
   }, [])
 
+  // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
-    // Sizes
+    // --- INITIAL SETUP ---
+    // Get initial window size
     const sizes = {
       width: window.innerWidth,
       height: window.innerHeight,
     }
 
-    // Scene setup
+    // Create Three.js scene
     const scene = createScene()
+    // Set up skybox with progress and loading callbacks
     setEquirectangularSkybox(
       scene,
-      '/textures/material_emissive.jpg',
+      SKYBOX_TEXTURE_PATH,
       (progress) => setSkyboxProgress(progress),
       () => setSkyboxLoading(false)
     )
-    const camera = createCamera(sizes.width, sizes.height, 50)
-    // Set camera to angled view (not top-down)
-    camera.position.set(0, 70, 70)
-    camera.lookAt(0, 0, 0)
+    // Create camera and set to angled view
+    const camera = createSolarCamera(sizes.width, sizes.height)
     scene.add(camera)
+    // Create renderer and attach to canvas
     const renderer = createRenderer(canvasRef.current as HTMLCanvasElement, sizes.width, sizes.height)
-    // Initialize 3D text label manager
+    // Initialize label manager for 3D text labels (CSS2D)
     const labelMgr = new LabelManager(containerRef.current!)
+    // Set up orbit controls
     const controls = createControls(camera, renderer.domElement)
+    // Clock for animation timing
     const clock = new Clock()
 
-    // Scaling and constants
+    // --- SOLAR SYSTEM OBJECTS ---
+    // Calculate scaling factors for solar system objects
     const scales = getSolarSystemScales(solarParams)
-
-    // Create solar system objects
+    // Create meshes for the sun and planets
     const meshes = createSolarSystemObjects(
       { sun: solarParams.sun, planets: solarParams.planets },
       scales,
       planetSpread,
       startOffset
     )
+    // Add all meshes to the scene
     meshes.forEach(mesh => scene.add(mesh))
+    // Add CSS2D labels for each mesh (planet/sun)
+    labelMgr.addLabelsForMeshes(scene, meshes, { fontSize: LABEL_FONT_SIZE, padding: LABEL_PADDING })
 
-    // Add CSS2D labels for each mesh
-    meshes.forEach(mesh => {
-      const offsetY = (mesh as any).userData.labelOffset
-      const text = (mesh as any).userData.labelText
-      if (offsetY != null && text) {
-        labelMgr.add(
-          scene,
-          mesh,
-          text,
-          offsetY * 3.7, // raise label higher above mesh
-          { fontSize: '10px', padding: '1px 3px' } // smaller label
-        )
-      }
-    })
-
-    // Handle resize
+    // --- WINDOW RESIZE HANDLING ---
     const onResize = () => handleResize(camera, renderer, sizes)
     window.addEventListener('resize', onResize)
 
-    // Animation loop
+    // --- ANIMATION LOOP ---
     let frameId: number
     const tick = () => {
+      // Calculate time delta (scaled up for visible motion)
       const deltaSec = clock.getDelta() * timeMultiplier
+      // Update planet/sun positions and rotations
       updateSolarSystem([solarParams.sun, ...solarParams.planets], meshes, deltaSec, { orbitPaused: guiOptions.current.orbitPaused, spinPaused: guiOptions.current.spinPaused })
+      // Update controls (e.g., orbit controls)
       controls.update()
+      // Render the scene
       renderer.render(scene, camera)
-      // Render 3D text labels
+      // Render 3D text labels (CSS2D)
       labelMgr.render(scene, camera)
+      // Schedule next frame
       frameId = requestAnimationFrame(tick)
     }
-    // Start loop
+    // Start animation loop
     frameId = requestAnimationFrame(tick)
 
-    // Cleanup
+    // --- CLEANUP ON UNMOUNT ---
     return () => {
       cleanupThreeScene({
         frameId,
@@ -123,25 +131,28 @@ export default function Home() {
         camera,
         onResize,
       })
-      // Cleanup label manager DOM
+      // Dispose of label manager and its DOM elements
       labelMgr.dispose()
     }
   }, [planetSpread, startOffset])
 
+  // --- RENDER ---
+  // Render progress indicator, canvas, and overlay UI
   return (
     <>
       <ProgressIndicator progress={skyboxProgress} visible={skyboxLoading} />
       <div
         ref={containerRef}
-        style={{ position: 'relative', width: '100vw', height: '100vh' }}
+        style={CONTAINER_STYLE}
       >
         <canvas
           ref={canvasRef}
-          className="webgl"
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }}
+          className={CANVAS_CLASSNAME}
+          style={CANVAS_STYLE}
         />
       </div>
       <Overlay planets={solarParams.planets} />
     </>
   )
 }
+// --- END OF HOME PAGE ---

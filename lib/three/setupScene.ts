@@ -2,16 +2,13 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
+// --- CONSTANTS ---
+export const CAMERA_FOV = 75
+export const DEFAULT_CAMERA_Z = 50
+
 // Create and return a new THREE.Scene
 export function createScene() {
   return new THREE.Scene()
-}
-
-// Create and return a PerspectiveCamera
-export function createCamera(width: number, height: number, z = 50) {
-  const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(0, 0, z)
-  return camera
 }
 
 // Create and return a WebGLRenderer
@@ -52,4 +49,11 @@ export function setEquirectangularSkybox(
       }
     }
   );
+}
+
+export function createSolarCamera(width: number, height: number) {
+  const camera = new THREE.PerspectiveCamera(CAMERA_FOV, width / height, 0.1, 1000)
+  camera.position.set(0, DEFAULT_CAMERA_Z, DEFAULT_CAMERA_Z)
+  camera.lookAt(0, 0, 0)
+  return camera
 }

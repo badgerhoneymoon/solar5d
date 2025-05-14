@@ -8,6 +8,10 @@ interface LabelEntry {
   offset: Vector3
 }
 
+// --- CONSTANTS ---
+export const LABEL_FONT_SIZE = '10px'
+export const LABEL_PADDING = '1px 3px'
+
 export class LabelManager {
   private renderer: CSS2DRenderer
   private entries: LabelEntry[] = []
@@ -100,5 +104,33 @@ export class LabelManager {
     if (this.renderer.domElement.parentElement) {
       this.renderer.domElement.parentElement.removeChild(this.renderer.domElement)
     }
+  }
+
+  /**
+   * Add labels for an array of meshes that have userData.labelOffset and userData.labelText
+   * Returns an array of created CSS2DObjects
+   */
+  addLabelsForMeshes(
+    scene: Scene,
+    meshes: Object3D[],
+    customStyles?: Partial<CSSStyleDeclaration>
+  ): CSS2DObject[] {
+    const createdLabels: CSS2DObject[] = []
+    meshes.forEach(mesh => {
+      const { labelOffset, labelText } = (mesh.userData as { labelOffset?: number; labelText?: string })
+      const offsetY = labelOffset
+      const text = labelText
+      if (offsetY != null && text) {
+        const label = this.add(
+          scene,
+          mesh,
+          text,
+          offsetY * 3.7, // raise label higher above mesh
+          customStyles ?? { fontSize: LABEL_FONT_SIZE, padding: LABEL_PADDING }
+        )
+        createdLabels.push(label)
+      }
+    })
+    return createdLabels
   }
 } 

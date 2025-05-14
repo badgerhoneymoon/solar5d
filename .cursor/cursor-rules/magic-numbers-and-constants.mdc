@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Magic Numbers & Constants Policy
+
+## General Principles
+- **No magic numbers in code.** All non-trivial numbers, strings, or config values must be defined as named constants.
+- **Module-local constants:** If a constant is only used in one file/module, define it at the top of that file.
+- **Shared constants:** If a constant is used in multiple files, move it to a shared constants file in the relevant module or a global `constants` directory.
+
+## File Organization
+- **Domain-specific constants** (e.g., visual, scaling, config) should be grouped in a relevant module or subdirectory.
+- **UI/component-specific constants** (e.g., styles, class names) should remain in the component file unless reused.
+- **Simulation/config constants** (e.g., time multipliers, breakpoints) should be in the most relevant module or a shared config/constants file if reused.
+
+## Naming & Usage
+- Use `UPPER_SNAKE_CASE` for all constants.
+- **Every constant must have a clear, descriptive comment explaining its purpose and usage.**
+- Never hardcode values directly in logic or JSX—always use a named constant.
+
+## Example
+```ts
+// Good (shared constant)
+import { RADIUS_MIN } from './constants/visual'
+
+// Good (module-local)
+const TIME_MULTIPLIER = 1e6
+
+// Bad
+const radius = 0.5 // magic number in logic
+```
+
+## See Also
+- [lib/three/visualConstants.ts](mdc:lib/three/visualConstants.ts)
+- [lib/three/solarSystem.ts](mdc:lib/three/solarSystem.ts)
