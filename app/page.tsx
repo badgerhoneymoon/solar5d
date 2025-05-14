@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState, CSSProperties } from 'react'
 import solarParams from '../info/solar-params.json'
-import { createScene, createSolarCamera, createRenderer, createControls, setEquirectangularSkybox, CAMERA_FOV } from '../lib/three/setupScene'
+import { createScene, createSolarCamera, createRenderer, createControls, setEquirectangularSkybox } from '../lib/three/setupScene'
 import { updateSolarSystem } from '../lib/three/tick'
 import { createSolarSystemObjects, PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
@@ -16,6 +16,7 @@ import ProgressIndicator from '../components/ui/ProgressIndicator'
 import { LabelManager, LABEL_FONT_SIZE, LABEL_PADDING } from '../lib/three/labels'
 import { cleanupThreeScene } from '../lib/three/cleanup'
 import { setupSolarSystemGUI } from '../lib/three/gui'
+import usePalmPause from '../hooks/usePalmPause'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e6
@@ -135,6 +136,11 @@ export default function Home() {
       labelMgr.dispose()
     }
   }, [planetSpread, startOffset])
+
+  // Palm open/closed detection for orbit pause
+  usePalmPause(paused => {
+    guiOptions.current.orbitPaused = paused;
+  });
 
   // --- RENDER ---
   // Render progress indicator, canvas, and overlay UI
