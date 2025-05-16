@@ -46,6 +46,8 @@ export default function Home() {
   // State for skybox loading progress and visibility
   const [skyboxProgress, setSkyboxProgress] = useState(0)
   const [skyboxLoading, setSkyboxLoading] = useState(true)
+  // State for enabling/disabling hand gestures
+  const [handGesturesEnabled, setHandGesturesEnabled] = useState(false)
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
@@ -117,7 +119,9 @@ export default function Home() {
           new THREE.Vector3(0, 50, 50),
           new THREE.Vector3(0, 0, 0)
         )
-      }
+      },
+      handGesturesEnabled,
+      setHandGesturesEnabled
     )
 
     // --- WINDOW RESIZE HANDLING ---
@@ -165,9 +169,13 @@ export default function Home() {
   }, [planetSpread, startOffset])
 
   // Palm open/closed detection for orbit pause
-  usePalmPause(paused => {
-    guiOptions.current.orbitPaused = paused;
-  });
+  usePalmPause(
+    handGesturesEnabled
+      ? paused => {
+          guiOptions.current.orbitPaused = paused;
+        }
+      : () => {},
+  );
 
   // --- RENDER ---
   // Render progress indicator, canvas, and overlay UI

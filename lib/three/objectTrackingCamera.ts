@@ -56,7 +56,6 @@ export function resetCamera(defaultPos: THREE.Vector3, defaultTarget: THREE.Vect
   trackedObject = null
   resetTargetPos = defaultPos.clone()
   resetTargetFocus = defaultTarget.clone()
-  offset = defaultPos.distanceTo(defaultTarget)
 }
 
 // Update camera position and target each frame
