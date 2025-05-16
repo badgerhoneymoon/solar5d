@@ -7,51 +7,73 @@ alwaysApply: true
 
 This document describes the standard project structure for new web app projects. Use this as a template for organizing your codebase.
 
-## Root Directory
-
-```
-PROJECT_ROOT/
-├── app/                # Next.js app directory (routes, pages, layouts)
-├── components/         # Reusable UI components
-├── context/            # React context providers
-├── db/                 # Database schema, migrations, and related code
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions and libraries
-├── node_modules/       # Node.js dependencies (auto-managed)
-├── plans/              # Product or feature planning docs
-├── prompts/            # Project rules and setup guides
-│   └── rules/          # Cursor rules and project-specific guidelines
-├── public/             # Static assets (images, icons, etc.)
-├── styles/             # Global and shared CSS (e.g., global.css, tailwind.css)
-├── tests/              # Unit and integration tests
-├── types/              # TypeScript type definitions
-├── .clerk/             # Clerk authentication config (if used)
-├── .cursor/            # Cursor config and rules (auto-managed)
-├── .env.local          # Local environment variables (never commit secrets)
-├── .gitignore          # Git ignore rules
-├── CHANGELOG.md        # Project changelog
-├── HOURS.md            # Time tracking or work log
-├── package.json        # NPM package manifest
-├── package-lock.json   # NPM lockfile
-├── README.md           # Project overview
-├── ROADMAP.md          # High-level roadmap
-├── drizzle.config.ts   # Drizzle ORM config (if used)
-├── middleware.ts       # Next.js middleware
-├── next.config.mjs     # Next.js config
-├── postcss.config.mjs  # PostCSS config
-├── tailwind.config.ts  # Tailwind CSS config
-├── tsconfig.json       # TypeScript config
-├── vitest.config.ts    # Vitest config (if used)
-└── ...                 # Other project-specific files
-```
-
 ## Guidelines
 - **Mobile-first:** Prioritize mobile UX and responsive design.
 - **No hardcoding:** Use environment variables and config files.
 - **Keep it simple:** Only add folders/files as needed.
-- **Rules:** Place all project rules in `prompts/rules/`.
+- **Rules:** Store project rules in `.cursor/cursor-rules/`.
 - **Sensitive data:** Never commit secrets or credentials.
+- **Modularity:** Extract business logic and heavy computations into `lib/` or `utils/` directories to keep orchestrator files lean.
+- **Helpers & Utilities:** Place standalone functions in `lib/utils/` or `helpers/` directories; avoid inline logic in `page.tsx` or `route.ts`.
+- **Component Modularization:** Store reusable UI components in `components/`; do not define substantial components within `page.tsx` or route files.
+- **Lean Orchestrators:** Ensure `page.tsx` and `route.ts` focus only on routing and layout, delegating logic and UI to dedicated modules.
 
----
+## Root Directory
 
-Copy this file to any new project as `prompts/rules/project-structure.md` for reference. 
+```text
+PROJECT_ROOT/
+├── .next/              # Next.js build output directory (auto-managed)
+├── .cursor/            # Cursor editor configuration (auto-managed)
+├── actions/            # Custom Next.js server actions
+├── app/                # Next.js app directory (routes, pages, layouts)
+│   ├── api/            # API route handlers (open-ai-chat-responses, open-ai-tool-calling, telegram-webhook)
+│   └── fonts/          # Custom font assets
+├── components/         # Reusable UI components
+│   └── ui/             # Base UI component library
+├── hooks/              # Custom React hooks
+├── info/               # Project information and metadata
+├── lib/                # Utility libraries and services
+│   ├── services/       # Third-party service integrations
+│   ├── snippets/       # Code snippets (e.g., mediapipe)
+│   ├── three/          # Three.js related modules
+│   └── utils/          # Helper utility functions
+├── prompts/            # Prompt templates and project-specific guides
+├── public/             # Static assets (images, textures, icons)
+│   └── textures/       # Texture assets for 3D scenes
+├── .env.example        # Example environment variables template (no secrets)
+├── .eslintrc.json      # ESLint configuration
+├── .gitignore          # Git ignore rules
+├── components.json     # Components metadata and config
+├── next-env.d.ts       # Next.js environment type definitions
+├── next.config.mjs     # Next.js configuration
+├── package.json        # NPM dependencies manifest
+├── package-lock.json   # NPM lockfile
+├── postcss.config.mjs  # PostCSS configuration
+├── tailwind.config.ts  # Tailwind CSS configuration
+├── tsconfig.json       # TypeScript configuration
+├── README.md           # Project overview and instructions
+└── ...                 # Other project-specific files
+```
+
+## Three.js Modules & Integration
+
+### lib/three/
+```text
+lib/three/
+├── setupScene.ts          # Scene, camera, renderer, controls, skybox setup
+├── solarSystem.ts         # Builds Sun & planet meshes + orbits
+├── scaling.ts             # Log-scale functions for radius & distance
+├── visualConstants.ts     # RADIUS_MIN, RADIUS_MAX constants
+├── temperatureToColor.ts  # Maps temperature to THREE.Color
+├── labels.ts              # CSS2D label manager (LabelManager)
+├── gui.ts                 # lil-gui controls (planetSpread & pause toggles)
+├── tick.ts                # Animation updates (spin & orbit)
+├── resize.ts              # Window resize handler
+└── cleanup.ts             # Scene cleanup & resource disposal
+```
+
+### Integration Points
+- app/page.tsx            # React component bootstrapping the Three.js scene and animation
+- info/solar-params.json  # Data for sun & planet parameters (radii, speeds, temps)
+- hooks/usePalmPause.ts   # Hook to pause orbit via MediaPipe Hands palm detection
+- components/Overlay.tsx  # UI overlay showing scale legend and temperature range

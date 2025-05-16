@@ -14,6 +14,7 @@ Our project is a mobile-first web app that prioritizes precision, simplicity, an
 3. Minimize code complexity and line count while meeting specifications
 4. Never add functionality or features that weren't explicitly requested
 5. No spaghetti code - use helper, util, component files
+6. Use context7 mcp tool for specific libraries refs.
 
 ## Code Standards
 

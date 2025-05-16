@@ -17,9 +17,11 @@ import { LabelManager, LABEL_FONT_SIZE, LABEL_PADDING } from '../lib/three/label
 import { cleanupThreeScene } from '../lib/three/cleanup'
 import { setupSolarSystemGUI } from '../lib/three/gui'
 import usePalmPause from '../hooks/usePalmPause'
+import * as THREE from 'three'
+import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCamera } from '../lib/three/objectTrackingCamera'
 
 // --- CONSTANTS ---
-const TIME_MULTIPLIER = 1e6
+const TIME_MULTIPLIER = 1e5
 const SKYBOX_TEXTURE_PATH = '/textures/material_emissive.jpg'
 const CANVAS_CLASSNAME = 'webgl'
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }
@@ -44,14 +46,6 @@ export default function Home() {
   // State for skybox loading progress and visibility
   const [skyboxProgress, setSkyboxProgress] = useState(0)
   const [skyboxLoading, setSkyboxLoading] = useState(true)
-
-  // --- GUI SETUP EFFECT ---
-  // Set up the solar system GUI (lil-gui) once on mount
-  // Returns a cleanup function to destroy the GUI on unmount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    return setupSolarSystemGUI(planetSpread, setPlanetSpread, guiOptions)
-  }, [])
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
@@ -80,6 +74,8 @@ export default function Home() {
     const labelMgr = new LabelManager(containerRef.current!)
     // Set up orbit controls
     const controls = createControls(camera, renderer.domElement)
+    // Initialize tracking camera with controls
+    initObjectTrackingCamera(camera, controls)
     // Clock for animation timing
     const clock = new Clock()
 
@@ -97,6 +93,32 @@ export default function Home() {
     meshes.forEach(mesh => scene.add(mesh))
     // Add CSS2D labels for each mesh (planet/sun)
     labelMgr.addLabelsForMeshes(scene, meshes, { fontSize: LABEL_FONT_SIZE, padding: LABEL_PADDING })
+    // --- GUI FOR FOCUS CONTROLS ---
+    const focusTargets = [
+      { name: solarParams.sun.name, mesh: meshes.find(m => m.name === solarParams.sun.name)! },
+      ...solarParams.planets.map(p => ({
+        name: p.name,
+        mesh: meshes.find(m => m.name === p.name)!
+      })),
+    ]
+    const cleanupGUI = setupSolarSystemGUI(
+      planetSpread,
+      setPlanetSpread,
+      guiOptions,
+      focusTargets,
+      (name, mesh) => {
+        const meshAsMesh = mesh as THREE.Mesh
+        const radius = (meshAsMesh.geometry as any).parameters.radius as number
+        focusOnObject(mesh, radius)
+      },
+      () => {
+        // Smooth top-down reset: center system with easing
+        resetCamera(
+          new THREE.Vector3(0, 50, 50),
+          new THREE.Vector3(0, 0, 0)
+        )
+      }
+    )
 
     // --- WINDOW RESIZE HANDLING ---
     const onResize = () => handleResize(camera, renderer, sizes)
@@ -109,8 +131,12 @@ export default function Home() {
       const deltaSec = clock.getDelta() * timeMultiplier
       // Update planet/sun positions and rotations
       updateSolarSystem([solarParams.sun, ...solarParams.planets], meshes, deltaSec, { orbitPaused: guiOptions.current.orbitPaused, spinPaused: guiOptions.current.spinPaused })
-      // Update controls (e.g., orbit controls)
-      controls.update()
+      // FIRST_EDIT: replace direct tracking and controls update with conditional logic
+      if (updateTrackingCamera()) {
+        // camera tracking active, skip control damping
+      } else {
+        controls.update()
+      }
       // Render the scene
       renderer.render(scene, camera)
       // Render 3D text labels (CSS2D)
@@ -123,6 +149,7 @@ export default function Home() {
 
     // --- CLEANUP ON UNMOUNT ---
     return () => {
+      cleanupGUI()
       cleanupThreeScene({
         frameId,
         meshes,
