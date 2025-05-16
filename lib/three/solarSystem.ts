@@ -16,8 +16,8 @@ export const START_OFFSET = 10;   // Offset for Mercury's distance (shifts all o
 // =========================
 // Solar system mesh/visual constants
 // =========================
-const SUN_SEGMENTS = 32; // Number of segments for the sun's sphere geometry (smoothness)
-const PLANET_SEGMENTS = 24; // Number of segments for planet sphere geometry (smoothness)
+const SUN_SEGMENTS = 64; // Number of segments for the sun's sphere geometry (smoothness)
+const PLANET_SEGMENTS = 64; // Number of segments for planet sphere geometry (smoothness)
 const ORBIT_SEGMENTS = 128; // Number of segments for orbit line geometry (smoothness of orbit circle)
 const ORBIT_COLOR = 'white'; // Color of the orbit lines (white)
 const ORBIT_OPACITY = 0.1; // Opacity of the orbit lines (semi-transparent)
