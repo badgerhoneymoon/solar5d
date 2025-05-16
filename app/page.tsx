@@ -168,11 +168,12 @@ export default function Home() {
     }
   }, [planetSpread, startOffset])
 
-  // Palm open/closed detection for orbit pause
+  // Palm open/closed detection for orbit and spin pause
   usePalmPause(
     handGesturesEnabled
       ? paused => {
           guiOptions.current.orbitPaused = paused;
+          guiOptions.current.spinPaused = paused;
         }
       : () => {},
   );
