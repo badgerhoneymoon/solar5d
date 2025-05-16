@@ -4,6 +4,7 @@
 import * as THREE from 'three'
 import { temperatureToColor } from './temperatureToColor'
 import { RADIUS_MIN, RADIUS_MAX } from './visualConstants'
+import { createSaturnRings } from './saturnRings'
 
 // =========================
 // Visual scaling/layout constants
@@ -36,6 +37,7 @@ let jupiterTexture: THREE.Texture | undefined;
 let saturnTexture: THREE.Texture | undefined;
 let uranusTexture: THREE.Texture | undefined;
 let neptuneTexture: THREE.Texture | undefined;
+let saturnRingTexture: THREE.Texture | undefined; // Added for Saturn's rings
 
 function getPlanetTextures() {
   if (typeof window === 'undefined') return {};
@@ -49,6 +51,9 @@ function getPlanetTextures() {
     saturnTexture = new THREE.TextureLoader().load('/textures/planets/2k_saturn.jpg');
     uranusTexture = new THREE.TextureLoader().load('/textures/planets/2k_uranus.jpg');
     neptuneTexture = new THREE.TextureLoader().load('/textures/planets/2k_neptune.jpg');
+    // IMPORTANT: Update this path to your actual Saturn ring texture
+    saturnRingTexture = new THREE.TextureLoader().load('/textures/planets/2k_saturn_ring_alpha.png');
+
     mercuryTexture.colorSpace = THREE.SRGBColorSpace;
     venusTexture.colorSpace = THREE.SRGBColorSpace;
     marsTexture.colorSpace = THREE.SRGBColorSpace;
@@ -58,8 +63,11 @@ function getPlanetTextures() {
     neptuneTexture.colorSpace = THREE.SRGBColorSpace;
     earthTexture.colorSpace = THREE.SRGBColorSpace;
     sunTexture.colorSpace = THREE.SRGBColorSpace;
+    if (saturnRingTexture) {
+      saturnRingTexture.colorSpace = THREE.SRGBColorSpace;
+    }
   }
-  return { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture };
+  return { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture, saturnRingTexture };
 }
 
 // =========================
@@ -110,7 +118,7 @@ export function createSolarSystemObjects(
   const meshes: THREE.Object3D[] = []
 
   // Get textures (client-only)
-  const { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture } = getPlanetTextures();
+  const { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture, saturnRingTexture } = getPlanetTextures();
 
   // Find min/max temperature for planets only
   const planetTemps = params.planets.map(p => p.temperature_k)
@@ -171,6 +179,8 @@ export function createSolarSystemObjects(
     const geometry = new THREE.SphereGeometry(radius, PLANET_SEGMENTS, PLANET_SEGMENTS)
     
     let material: THREE.Material
+    let planetSpecificMesh: THREE.Object3D | undefined // Used for planets with special structures like Saturn
+
     if (planet.name.toLowerCase() === 'mercury' && mercuryTexture) {
       material = new THREE.MeshBasicMaterial({ map: mercuryTexture })
     } else if (planet.name.toLowerCase() === 'venus' && venusTexture) {
@@ -182,7 +192,21 @@ export function createSolarSystemObjects(
     } else if (planet.name.toLowerCase() === 'jupiter' && jupiterTexture) {
       material = new THREE.MeshBasicMaterial({ map: jupiterTexture })
     } else if (planet.name.toLowerCase() === 'saturn' && saturnTexture) {
+      // Build Saturn as a Group: body + rings
+      const group = new THREE.Group()
+      group.name = planet.name
       material = new THREE.MeshBasicMaterial({ map: saturnTexture })
+      // Body mesh
+      const bodyMesh = new THREE.Mesh(geometry, material)
+      bodyMesh.name = `${planet.name}_body`
+      group.add(bodyMesh)
+      // Rings
+      if (saturnRingTexture) {
+        const ring = createSaturnRings(radius, saturnRingTexture)
+        ring.name = `${planet.name}_rings`
+        group.add(ring)
+      }
+      planetSpecificMesh = group
     } else if (planet.name.toLowerCase() === 'uranus' && uranusTexture) {
       material = new THREE.MeshBasicMaterial({ map: uranusTexture })
     } else if (planet.name.toLowerCase() === 'neptune' && neptuneTexture) {
@@ -192,7 +216,8 @@ export function createSolarSystemObjects(
       const color = temperatureToColor(planet.temperature_k, minPlanetTemp, maxPlanetTemp)
       material = new THREE.MeshBasicMaterial({ color, wireframe: true })
     }
-    const mesh = new THREE.Mesh(geometry, material)
+
+    const mesh = planetSpecificMesh || new THREE.Mesh(geometry, material!);
     mesh.position.set(x, 0, z)
     mesh.name = planet.name
     // Tilt the planet around its local X-axis

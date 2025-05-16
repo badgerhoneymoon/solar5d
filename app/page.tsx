@@ -109,8 +109,15 @@ export default function Home() {
       guiOptions,
       focusTargets,
       (name, mesh) => {
-        const meshAsMesh = mesh as THREE.Mesh
-        const radius = (meshAsMesh.geometry as any).parameters.radius as number
+        let radius: number
+        if (mesh instanceof THREE.Group) {
+          // Saturn is a group: get the body child
+          const body = mesh.getObjectByName(`${name}_body`) as THREE.Mesh
+          radius = (body.geometry as any).parameters.radius as number
+        } else {
+          const meshAsMesh = mesh as THREE.Mesh
+          radius = (meshAsMesh.geometry as any).parameters.radius as number
+        }
         focusOnObject(mesh, radius)
       },
       () => {

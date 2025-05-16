@@ -25,13 +25,19 @@ export function updateSolarSystem(
   bodies.forEach(body => {
     // Find the corresponding mesh by name
     const obj = meshes.find(m => m.name === body.name)
-    if (!obj || !(obj instanceof THREE.Mesh)) return
+    if (!obj) return
 
     // Rotate around its own axis
     if (!spinPaused) {
       // Angular speed (rad/s) = rotation_speed_kmh (km/h) / (radius_km * 3600)
       const axisRad = (body.rotation_speed_kmh / (body.radius_km * 3600)) * deltaSec
-      obj.rotation.y += axisRad
+      // Spin only the body mesh (for grouped planets like Saturn)
+      const bodyMesh = obj.getObjectByName(`${body.name}_body`)
+      if (bodyMesh instanceof THREE.Mesh) {
+        bodyMesh.rotation.y += axisRad
+      } else if (obj instanceof THREE.Mesh) {
+        obj.rotation.y += axisRad
+      }
     }
 
     // Orbit around the sun
