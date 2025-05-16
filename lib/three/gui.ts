@@ -15,9 +15,12 @@ export function setupSolarSystemGUI(
   gui.add(guiOptionsRef.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptionsRef.current.orbitPaused = v })
   gui.add(guiOptionsRef.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptionsRef.current.spinPaused = v })
 
+  // Add folder for camera controls
+  const cameraFolder = gui.addFolder('Camera')
+  cameraFolder.add({ 'Reset Camera': onResetCamera }, 'Reset Camera')
+
   // Add folder for focus controls
   const focusFolder = gui.addFolder('Focus On')
-  focusFolder.add({ 'Reset Camera': onResetCamera }, 'Reset Camera')
   focusTargets.forEach(({ name, mesh }) => {
     focusFolder.add({ [name]: () => onFocus(name, mesh) }, name)
   })
