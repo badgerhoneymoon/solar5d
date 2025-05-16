@@ -22,7 +22,7 @@ import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCam
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
-const SKYBOX_TEXTURE_PATH = '/textures/material_emissive.jpg'
+const SKYBOX_TEXTURE_PATH = '/textures/stars/8k_stars_milky_way.jpg'
 const CANVAS_CLASSNAME = 'webgl'
 const CANVAS_STYLE: CSSProperties = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'block' }
 const CONTAINER_STYLE: CSSProperties = { position: 'relative', width: '100vw', height: '100vh' }

@@ -18,12 +18,11 @@ const SUN_SEGMENTS = 32; // Number of segments for the sun's sphere geometry (sm
 const PLANET_SEGMENTS = 24; // Number of segments for planet sphere geometry (smoothness)
 const ORBIT_SEGMENTS = 128; // Number of segments for orbit line geometry (smoothness of orbit circle)
 const ORBIT_COLOR = 'white'; // Color of the orbit lines (white)
-const ORBIT_OPACITY = 0.3; // Opacity of the orbit lines (semi-transparent)
+const ORBIT_OPACITY = 0.1; // Opacity of the orbit lines (semi-transparent)
 const ORBIT_TRANSPARENT = true; // Whether orbit lines are rendered as transparent
-const AXIS_COLOR = 'lime'; // Color for rotation axis lines (green)
-const PLANET_MARKER_COLOR = 'red'; // Color for the planet rotation marker (red)
-const PLANET_MARKER_RADIUS_FACTOR = 0.1; // Size of the planet marker as a fraction of planet radius
-const PLANET_MARKER_SEGMENTS = 8; // Number of segments for the marker sphere geometry
+const AXIS_COLOR = 'white'; // Color for rotation axis lines (green)
+const AXIS_OPACITY = 0.3; // Opacity for axis lines (more transparent)
+const AXIS_TRANSPARENT = true; // Axis lines rendered as transparent
 
 // =========================
 // Texture Loader (for Mercury & Venus)
@@ -111,7 +110,7 @@ export function createSolarSystemObjects(
   sunMesh.rotateX(sunTiltRad)
   // Axis line for Sun's rotation axis
   const sunAxisLength = sunRadius * 2
-  const sunAxisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR })
+  const sunAxisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR, opacity: AXIS_OPACITY, transparent: AXIS_TRANSPARENT })
   const sunAxisGeometry = new THREE.BufferGeometry().setFromPoints([
     new THREE.Vector3(0, -sunAxisLength, 0),
     new THREE.Vector3(0, sunAxisLength, 0)
@@ -189,7 +188,7 @@ export function createSolarSystemObjects(
     mesh.rotateX(tiltRad)
     // Axis line for planet's rotation axis
     const axisLength = radius * 2
-    const axisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR })
+    const axisMaterial = new THREE.LineBasicMaterial({ color: AXIS_COLOR, opacity: AXIS_OPACITY, transparent: AXIS_TRANSPARENT })
     const axisGeometry = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(0, -axisLength, 0),
       new THREE.Vector3(0, axisLength, 0)
@@ -197,12 +196,6 @@ export function createSolarSystemObjects(
     const axisLine = new THREE.Line(axisGeometry, axisMaterial)
     axisLine.name = `${planet.name}_axis`
     mesh.add(axisLine)
-    // marker for self-rotation visibility
-    const markerGeo = new THREE.SphereGeometry(radius * PLANET_MARKER_RADIUS_FACTOR, PLANET_MARKER_SEGMENTS, PLANET_MARKER_SEGMENTS)
-    const markerMat = new THREE.MeshBasicMaterial({ color: PLANET_MARKER_COLOR })
-    const markerMesh = new THREE.Mesh(markerGeo, markerMat)
-    markerMesh.position.set(radius, 0, 0)
-    mesh.add(markerMesh)
     // Tag for CSS2D label (handled externally)
     mesh.userData.labelOffset = radius * 1.2
     mesh.userData.labelText = planet.name
