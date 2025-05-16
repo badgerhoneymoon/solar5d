@@ -11,8 +11,8 @@ export function createSaturnRings(
   texture: THREE.Texture,
   segments = 64
 ): THREE.Mesh {
-  const inner = planetRadius * 1.2;
-  const outer = planetRadius * 2.2;
+  const inner = planetRadius * 1.11;
+  const outer = planetRadius * 2.27;
   const geometry = new THREE.RingGeometry(inner, outer, segments);
   // Remap UVs: radial distance → U, angle → V
   const pos = geometry.attributes.position;
