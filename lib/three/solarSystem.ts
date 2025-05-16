@@ -27,24 +27,41 @@ const AXIS_TRANSPARENT = true; // Axis lines rendered as transparent
 // =========================
 // Texture Loader (for Mercury & Venus)
 // =========================
-const sunTexture = new THREE.TextureLoader().load('/textures/planets/2k_sun.jpg')
-const mercuryTexture = new THREE.TextureLoader().load('/textures/planets/2k_mercury.jpg')
-const venusTexture = new THREE.TextureLoader().load('/textures/planets/2k_venus.jpg')
-const earthTexture = new THREE.TextureLoader().load('/textures/planets/2k_earth.jpg')
-const marsTexture = new THREE.TextureLoader().load('/textures/planets/2k_mars.jpg')
-const jupiterTexture = new THREE.TextureLoader().load('/textures/planets/2k_jupiter.jpg')
-const saturnTexture = new THREE.TextureLoader().load('/textures/planets/2k_saturn.jpg')
-const uranusTexture = new THREE.TextureLoader().load('/textures/planets/2k_uranus.jpg')
-const neptuneTexture = new THREE.TextureLoader().load('/textures/planets/2k_neptune.jpg')
-mercuryTexture.colorSpace = THREE.SRGBColorSpace;
-venusTexture.colorSpace = THREE.SRGBColorSpace;
-marsTexture.colorSpace = THREE.SRGBColorSpace;
-jupiterTexture.colorSpace = THREE.SRGBColorSpace;
-saturnTexture.colorSpace = THREE.SRGBColorSpace;
-uranusTexture.colorSpace = THREE.SRGBColorSpace;
-neptuneTexture.colorSpace = THREE.SRGBColorSpace;
-earthTexture.colorSpace = THREE.SRGBColorSpace;
-sunTexture.colorSpace = THREE.SRGBColorSpace;
+let sunTexture: THREE.Texture | undefined;
+let mercuryTexture: THREE.Texture | undefined;
+let venusTexture: THREE.Texture | undefined;
+let earthTexture: THREE.Texture | undefined;
+let marsTexture: THREE.Texture | undefined;
+let jupiterTexture: THREE.Texture | undefined;
+let saturnTexture: THREE.Texture | undefined;
+let uranusTexture: THREE.Texture | undefined;
+let neptuneTexture: THREE.Texture | undefined;
+
+function getPlanetTextures() {
+  if (typeof window === 'undefined') return {};
+  if (!sunTexture) {
+    sunTexture = new THREE.TextureLoader().load('/textures/planets/2k_sun.jpg');
+    mercuryTexture = new THREE.TextureLoader().load('/textures/planets/2k_mercury.jpg');
+    venusTexture = new THREE.TextureLoader().load('/textures/planets/2k_venus.jpg');
+    earthTexture = new THREE.TextureLoader().load('/textures/planets/2k_earth.jpg');
+    marsTexture = new THREE.TextureLoader().load('/textures/planets/2k_mars.jpg');
+    jupiterTexture = new THREE.TextureLoader().load('/textures/planets/2k_jupiter.jpg');
+    saturnTexture = new THREE.TextureLoader().load('/textures/planets/2k_saturn.jpg');
+    uranusTexture = new THREE.TextureLoader().load('/textures/planets/2k_uranus.jpg');
+    neptuneTexture = new THREE.TextureLoader().load('/textures/planets/2k_neptune.jpg');
+    mercuryTexture.colorSpace = THREE.SRGBColorSpace;
+    venusTexture.colorSpace = THREE.SRGBColorSpace;
+    marsTexture.colorSpace = THREE.SRGBColorSpace;
+    jupiterTexture.colorSpace = THREE.SRGBColorSpace;
+    saturnTexture.colorSpace = THREE.SRGBColorSpace;
+    uranusTexture.colorSpace = THREE.SRGBColorSpace;
+    neptuneTexture.colorSpace = THREE.SRGBColorSpace;
+    earthTexture.colorSpace = THREE.SRGBColorSpace;
+    sunTexture.colorSpace = THREE.SRGBColorSpace;
+  }
+  return { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture };
+}
+
 // =========================
 // Type Definitions
 // =========================
@@ -92,6 +109,9 @@ export function createSolarSystemObjects(
 ): THREE.Object3D[] {
   const meshes: THREE.Object3D[] = []
 
+  // Get textures (client-only)
+  const { sunTexture, mercuryTexture, venusTexture, earthTexture, marsTexture, jupiterTexture, saturnTexture, uranusTexture, neptuneTexture } = getPlanetTextures();
+
   // Find min/max temperature for planets only
   const planetTemps = params.planets.map(p => p.temperature_k)
   const minPlanetTemp = Math.min(...planetTemps)
@@ -101,7 +121,7 @@ export function createSolarSystemObjects(
   const sunRadius = RADIUS_MIN + scales.radius(params.sun.radius_km, RADIUS_MAX - RADIUS_MIN)
   const sunGeometry = new THREE.SphereGeometry(sunRadius, SUN_SEGMENTS, SUN_SEGMENTS)
   // Sun: always yellow (or use its own temp, but it's always hottest)
-  const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture })
+  const sunMaterial = sunTexture ? new THREE.MeshBasicMaterial({ map: sunTexture }) : new THREE.MeshBasicMaterial({ color: 0xffff00 });
   const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial)
   sunMesh.position.set(0, 0, 0)
   sunMesh.name = params.sun.name
@@ -151,29 +171,21 @@ export function createSolarSystemObjects(
     const geometry = new THREE.SphereGeometry(radius, PLANET_SEGMENTS, PLANET_SEGMENTS)
     
     let material: THREE.Material
-    if (planet.name.toLowerCase() === 'mercury') {
-      // Use real texture for Mercury
+    if (planet.name.toLowerCase() === 'mercury' && mercuryTexture) {
       material = new THREE.MeshBasicMaterial({ map: mercuryTexture })
-    } else if (planet.name.toLowerCase() === 'venus') {
-      // Use real texture for Venus
+    } else if (planet.name.toLowerCase() === 'venus' && venusTexture) {
       material = new THREE.MeshBasicMaterial({ map: venusTexture })
-    } else if (planet.name.toLowerCase() === 'earth') {
-      // Use real texture for Earth
+    } else if (planet.name.toLowerCase() === 'earth' && earthTexture) {
       material = new THREE.MeshBasicMaterial({ map: earthTexture })
-    } else if (planet.name.toLowerCase() === 'mars') {
-      // Use real texture for Mars
+    } else if (planet.name.toLowerCase() === 'mars' && marsTexture) {
       material = new THREE.MeshBasicMaterial({ map: marsTexture })
-    } else if (planet.name.toLowerCase() === 'jupiter') {
-      // Use real texture for Jupiter
+    } else if (planet.name.toLowerCase() === 'jupiter' && jupiterTexture) {
       material = new THREE.MeshBasicMaterial({ map: jupiterTexture })
-    } else if (planet.name.toLowerCase() === 'saturn') {
-      // Use real texture for Saturn
+    } else if (planet.name.toLowerCase() === 'saturn' && saturnTexture) {
       material = new THREE.MeshBasicMaterial({ map: saturnTexture })
-    } else if (planet.name.toLowerCase() === 'uranus') {
-      // Use real texture for Uranus
+    } else if (planet.name.toLowerCase() === 'uranus' && uranusTexture) {
       material = new THREE.MeshBasicMaterial({ map: uranusTexture })
-    } else if (planet.name.toLowerCase() === 'neptune') {
-      // Use real texture for Neptune
+    } else if (planet.name.toLowerCase() === 'neptune' && neptuneTexture) {
       material = new THREE.MeshBasicMaterial({ map: neptuneTexture })
     } else {
       // Color by planet temperature (planet range only)
