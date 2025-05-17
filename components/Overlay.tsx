@@ -47,7 +47,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
           <div
             style={{
               position: 'fixed',
-              bottom: 24,
+              top: 24,
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'rgba(20,20,30,0.9)',
