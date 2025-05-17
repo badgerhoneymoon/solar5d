@@ -1,18 +1,13 @@
 import * as THREE from 'three'
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-// Default camera distance from target when not tracking
-const DEFAULT_OFFSET = 20
-// Default smoothing factor for object tracking camera movement
-const DEFAULT_OBJECT_LERP_ALPHA = 0.03
-// Smoothing factor for general camera tracking updates
-const DEFAULT_LERP_ALPHA = 0.02
-// Smoothing factor for camera reset (slower movement)
-const DEFAULT_RESET_LERP_ALPHA = 0.01
-// Multiplier to determine camera offset based on object size
-const FOCUS_OFFSET_SCALE = 3
-// Threshold to determine when camera reset is "close enough" to finish
-const RESET_FINISH_THRESHOLD = 0.01
+
+const DEFAULT_OFFSET = 20 // Default camera distance from target when not tracking
+const DEFAULT_OBJECT_LERP_ALPHA = 0.02 // Default smoothing factor for object tracking camera movement
+const DEFAULT_LERP_ALPHA = 0.02 // Smoothing factor for general camera tracking updates
+const DEFAULT_RESET_LERP_ALPHA = 0.01 // Smoothing factor for camera reset (slower movement)
+const FOCUS_OFFSET_SCALE = 3 // Multiplier to determine camera offset based on object size
+const RESET_FINISH_THRESHOLD = 0.01 // Threshold to determine when camera reset is "close enough" to finish
 
 let trackedObject: THREE.Object3D | null = null
 let camera: THREE.PerspectiveCamera | null = null
