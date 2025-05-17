@@ -21,6 +21,7 @@ import * as THREE from 'three'
 import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCamera } from '../lib/three/objectTrackingCamera'
 import PalmPauseDebugOverlay from '../components/PalmPauseDebugOverlay'
 import ToggleImageSwitch from '../components/ui/toggle-image-switch'
+import { VoiceService } from '../lib/services/realtime-api-service'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
@@ -52,6 +53,11 @@ export default function Home() {
   const [handGesturesEnabled, setHandGesturesEnabled] = useState(false)
   // State for enabling/disabling voice mode
   const [voiceModeEnabled, setVoiceModeEnabled] = useState(false)
+  const [voiceRecording, setVoiceRecording] = useState(false)
+  const voiceServiceRef = useRef<VoiceService | null>(null)
+  const focusTargetsRef = useRef<{ name: string; mesh: THREE.Object3D }[]>([])
+  const spinControllerRef = useRef<{ updateDisplay: () => void } | null>(null)
+  const [hardStopWarning, setHardStopWarning] = useState<string | null>(null)
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
@@ -138,6 +144,9 @@ export default function Home() {
         spinController.updateDisplay()
       }
     )
+    // Store refs for voice control
+    focusTargetsRef.current = focusTargets
+    spinControllerRef.current = spinController
 
     // --- WINDOW RESIZE HANDLING ---
     const onResize = () => handleResize(camera, renderer, sizes)
@@ -193,6 +202,56 @@ export default function Home() {
       : () => {},
   );
 
+  // Hook up VoiceService to start/stop recording when voiceModeEnabled changes
+  useEffect(() => {
+    if (voiceModeEnabled) {
+      if (!voiceServiceRef.current) {
+        const key = process.env.NEXT_PUBLIC_OPENAI_API_KEY
+        if (!key) {
+          console.error('Missing NEXT_PUBLIC_OPENAI_API_KEY')
+          return
+        }
+        voiceServiceRef.current = new VoiceService(key)
+        voiceServiceRef.current.on('error', err => console.error('[VoiceService]', err))
+        voiceServiceRef.current.on('debug', msg => console.debug('[VoiceService]', msg))
+        voiceServiceRef.current.on('recordingStarted', () => setVoiceRecording(true))
+        voiceServiceRef.current.on('recordingStopped', () => {
+          setVoiceRecording(false)
+          setVoiceModeEnabled(false)
+        })
+        // Listen for focus_planet calls from voice service
+        voiceServiceRef.current.on('focus_planet', (planetName: string) => {
+          // Find the target mesh
+          const target = focusTargetsRef.current.find(t => t.name.toLowerCase() === planetName.toLowerCase())
+          if (!target) return
+          const mesh = target.mesh
+          // Determine radius for camera offset
+          let radius: number
+          if (mesh instanceof THREE.Group) {
+            const body = mesh.getObjectByName(`${target.name}_body`) as THREE.Mesh
+            radius = (body.geometry as any).parameters.radius as number
+          } else {
+            radius = ((mesh as THREE.Mesh).geometry as any).parameters.radius as number
+          }
+          // Trigger camera focus and update state
+          focusOnObject(mesh, radius)
+          setFocusedPlanet(planetName)
+          // Pause spinning and update GUI
+          guiOptions.current.spinPaused = true
+          spinControllerRef.current?.updateDisplay()
+        })
+        // Listen for hard stop warning
+        voiceServiceRef.current.on('hardStopWarning', (msg: string) => {
+          setHardStopWarning(msg)
+          setTimeout(() => setHardStopWarning(null), 10000)
+        })
+      }
+      voiceServiceRef.current.startRecording()
+    } else {
+      voiceServiceRef.current?.stopRecording()
+    }
+  }, [voiceModeEnabled]);
+
   // --- RENDER ---
   // Render progress indicator, canvas, and overlay UI
   return (
@@ -222,7 +281,14 @@ export default function Home() {
         disabledText="#fff200"
         image="/images/gestures/mic.jpg"
         alt={voiceModeEnabled ? 'Disable voice' : 'Enable voice'}
-        style={{ position: 'fixed', right: '1rem', bottom: '20rem', zIndex: 9999 }}
+        style={{
+          position: 'fixed',
+          right: '1rem',
+          bottom: '20rem',
+          zIndex: 9999,
+          transformOrigin: 'center center',
+          animation: voiceRecording ? 'pulse-scale 1s infinite ease-in-out' : undefined
+        }}
       />
       {/* Gestures button */}
       <ToggleImageSwitch
@@ -240,6 +306,46 @@ export default function Home() {
         style={{ position: 'fixed', right: '1rem', bottom: '11rem', zIndex: 9999 }}
       />
       {handGesturesEnabled && <PalmPauseDebugOverlay />}
+      {/* Hard stop warning dialog */}
+      {hardStopWarning && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#222',
+            color: '#fff',
+            padding: '2rem 3rem',
+            borderRadius: '1rem',
+            boxShadow: '0 2px 16px #0008',
+            fontSize: '1.2rem',
+            textAlign: 'center',
+            maxWidth: 400,
+          }}>
+            {hardStopWarning}
+            <br />
+            <button onClick={() => setHardStopWarning(null)} style={{
+              marginTop: '1.5rem',
+              background: '#fa0',
+              color: '#222',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1.5rem',
+              fontWeight: 600,
+              fontSize: '1rem',
+              cursor: 'pointer',
+            }}>OK</button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

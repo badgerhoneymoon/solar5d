@@ -10,6 +10,16 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .pulse-border {
+    animation: pulse-border 1.5s infinite ease-in-out;
+  }
+  .pulse-ring {
+    animation: ring 1.2s infinite ease-in-out;
+  }
+  .pulse-scale {
+    animation: pulse-scale 1s infinite ease-in-out;
+    transform-origin: center center;
+  }
 }
 
 @layer base {
@@ -91,4 +101,20 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,165,0,0.8); }
+  50% { box-shadow: 0 0 10px 5px rgba(255,165,0,0); }
+}
+
+@keyframes ring {
+  0% { box-shadow: 0 0 0 0 rgba(255,165,0,0.7); }
+  70% { box-shadow: 0 0 0 14px rgba(255,165,0,0); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }

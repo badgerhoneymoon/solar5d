@@ -14,6 +14,7 @@
  * - 'recordingStopped': When voice recording ends
  */
 import { EventEmitter } from 'events';
+import solarParams from '../../info/solar-params.json';
 
 /**
  * Interface for the structure of events sent/received via the data channel.
@@ -57,6 +58,8 @@ export class VoiceService extends EventEmitter {
   private mediaStream: MediaStream | null = null;
   // Flag indicating if the service is currently recording and connected
   private isRecording = false;
+  // Timeout ID for enforcing max recording duration (in ms)
+  private hardStopTimeout: number | null = null;
 
   /**
    * Creates an instance of VoiceService.
@@ -80,6 +83,10 @@ export class VoiceService extends EventEmitter {
    */
   async startRecording() {
     if (this.isRecording) return;
+
+    // Log when startRecording is invoked
+    console.log('[VoiceService] startRecording called');
+    this.emit('debug', 'startRecording called');
 
     try {
       this.emit('debug', 'Initializing WebRTC connection...');
@@ -154,7 +161,17 @@ export class VoiceService extends EventEmitter {
 
       this.isRecording = true;
       this.emit('recordingStarted');
+      console.log('[VoiceService] Emitted recordingStarted event');
       this.emit('debug', 'Recording session started successfully');
+      // Warn user 5 seconds after recording starts
+      window.setTimeout(() => {
+        this.emit('hardStopWarning', 'AI speaking is limited to 60 seconds for public demo purposes.');
+      }, 30000);
+      // Schedule hard stop after 1 minute
+      this.hardStopTimeout = window.setTimeout(() => {
+        this.emit('debug', 'Recording time limit of 1 minute reached, stopping recording');
+        this.stopRecording();
+      }, 60000); // 1 minute
 
     } catch (err) {
       this.emit('error', new Error('Failed to start recording: ' + (err as Error).message));
@@ -184,12 +201,9 @@ export class VoiceService extends EventEmitter {
         if (data.type === 'conversation.item.created' && data.item?.type === 'function_call' ||
             data.type === 'response.function_call_arguments.done') {
           const name = data.item?.name || data.name;
-          // Arguments might be fully formed in 'item.parameters' or streamed and finalized in 'arguments'
-          const params = data.type === 'response.function_call_arguments.done' ? 
-            JSON.parse(data.arguments) : data.item?.parameters;
-          const call_id = data.item?.call_id || data.call_id; // Get the call ID
-          
-          // Process the identified function call
+          const call_id = data.item?.call_id || data.call_id;
+          // Minimal parameter parsing: use object or parse JSON string
+          const params = data.item?.parameters ?? (data.arguments ? JSON.parse(data.arguments) : {});
           this._handleFunctionCall(name, params, call_id);
         }
 
@@ -214,23 +228,26 @@ export class VoiceService extends EventEmitter {
    * This includes the system instructions and the available tools (functions).
    */
   private _sendSessionUpdate() {
+    // Build an enum of valid names for the focus_planet function
+    const validNames = [solarParams.sun.name, ...solarParams.planets.map(p => p.name)];
     this._sendEvent({
       type: 'session.update',
       session: {
-        instructions: 'You are a helpful voice assistant. Please respond to the user.',
+        instructions: `You are a cosmologist-educator in the style of David Attenborough. Treat every space object as an animal. Always respond in English, regardless of the user's language. If a user asks about, mentions, or wants to hear a story, fact, or information about any planet or the sun, you MUST call the focus_planet tool BEFORE answering, even if the user just wants to know about it, hear a story, or asks indirectly. Never answer about a planet or the sun without first calling the tool.`,
         tools: [{
           type: 'function',
-          name: 'generic_tool',
-          description: 'A generic tool for demonstration. Replace with your own.',
+          name: 'focus_planet',
+          description: `Call this tool to focus the camera on a planet or the sun whenever the user asks about, mentions, or wants to hear a story, fact, or information about it. Always use this tool before answering any question or request related to a planet or the sun, even if the request is indirect or for a story.`,
           parameters: {
             type: 'object',
             properties: {
-              input: {
+              name: {
                 type: 'string',
-                description: 'Input string for the tool.'
+                description: 'Name of the planet or the sun to focus on',
+                enum: validNames
               }
             },
-            required: ['input']
+            required: ['name']
           }
         }]
       }
@@ -253,15 +270,19 @@ export class VoiceService extends EventEmitter {
    * @param call_id - The unique identifier of the function call this output corresponds to.
    * @param output - The result data from the function execution.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _sendFunctionOutput(call_id: string | undefined, output: any) {
+  private _sendFunctionOutput(call_id: string | undefined, output: Record<string, string>) {
+    // 1) Send output item
     this._sendEvent({
       type: 'conversation.item.create',
       item: {
         type: 'function_call_output',
-        call_id, // Link this output to the specific function call
-        output: JSON.stringify(output) // Stringify the output data
+        call_id,
+        output: JSON.stringify(output)
       }
+    });
+    // 2) Immediately trigger model to continue speaking based on the tool result
+    this._sendEvent({
+      type: 'response.create'
     });
   }
 
@@ -274,23 +295,41 @@ export class VoiceService extends EventEmitter {
    * @param params - The parameters provided for the function call.
    * @param call_id - The unique identifier for this function call instance.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private _handleFunctionCall(name: string, params: any, call_id: string) {
-    let success = true; // Assume success unless validation fails
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let output: any = null;
-    switch(name) {
-      case 'generic_tool':
-        // TODO: Replace with your own function logic
-        output = { result: `You sent: ${params?.input}` };
+  private _handleFunctionCall(name: string, params: Record<string, unknown> | string, call_id: string) {
+    // Gracefully handle various parameter representations
+    let parsedParams: Record<string, unknown> = {};
+    try {
+      if (typeof params === 'string') {
+        parsedParams = params.trim() ? JSON.parse(params) : {};
+      } else if (typeof params === 'object' && params !== null) {
+        parsedParams = params as Record<string, unknown>;
+      }
+    } catch (e) {
+      // If parsing fails, emit an error but continue with an empty param object
+      this.emit('error', new Error(`Failed to parse function parameters: ${(e as Error).message}`));
+      parsedParams = {};
+    }
+
+    let output: Record<string, string> | null = null;
+    switch (name) {
+      case 'focus_planet':
+        const planetName = parsedParams.name;
+        if (typeof planetName === 'string' && planetName.length > 0) {
+          console.log('[VoiceService] focus_planet called with:', planetName);
+          this.emit('debug', `focus_planet called with: ${planetName}`);
+          // Emit event for focusing on a planet or sun
+          this.emit('focus_planet', planetName);
+          output = { result: `Focusing on ${planetName}` };
+        } else {
+          output = { error: 'Invalid or missing planet name' };
+        }
         break;
       default:
-        success = false; // Unknown tool
         output = { error: 'Unknown tool' };
         break;
     }
-    // Send the result (success/failure) back to OpenAI
-    this._sendFunctionOutput(call_id, { success, ...output });
+    // Send the function output back to OpenAI
+    this._sendFunctionOutput(call_id, output);
   }
 
   /**
@@ -328,6 +367,11 @@ export class VoiceService extends EventEmitter {
     } catch (err) {
         this.emit('error', new Error('Error during resource cleanup: ' + (err as Error).message));
     } finally {
+        // Clear any pending hard stop timeout
+        if (this.hardStopTimeout !== null) {
+          clearTimeout(this.hardStopTimeout);
+          this.hardStopTimeout = null;
+        }
         // Reset all state
         this.dataChannel = null;
         this.mediaStream = null;
