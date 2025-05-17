@@ -2,22 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import usePalmPause from '../hooks/usePalmPause';
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  right: '1rem',
-  bottom: '1rem',
-  zIndex: 9999,
-  background: 'rgba(30,30,30,0.85)',
-  color: '#fff',
-  padding: '1rem',
-  borderRadius: '0.5rem',
-  fontFamily: 'monospace',
-  fontSize: '0.95rem',
-  minWidth: '220px',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-  pointerEvents: 'none',
-};
+import Image from 'next/image';
 
 export default function PalmPauseDebugOverlay() {
   const [paused, setPaused] = useState(false);
@@ -55,13 +40,25 @@ export default function PalmPauseDebugOverlay() {
   }, []);
 
   return (
-    <div style={overlayStyle}>
-      <div><b>PalmPause Debug</b></div>
-      <div>Status: <span style={{color: status==='error'?'#f55':status==='running'?'#6f6':'#aaa'}}>{status}</span></div>
-      <div>Paused: <span style={{color: paused?'#f55':'#6f6'}}>{paused ? 'YES' : 'NO'}</span></div>
-      <div>avgDist: <span>{avgDist !== null ? avgDist.toFixed(4) : 'n/a'}</span></div>
-      <div>Gesture: <span style={{color: paused ? '#f55' : '#6f6'}}>{paused ? 'Closed fist' : 'Open palm'}</span></div>
-      <div style={{fontSize:'0.8em',color:'#aaa',marginTop:'0.5em'}}>Show hand to camera to test</div>
+    <div style={{ display: 'flex', alignItems: 'center', position: 'fixed', right: '1rem', bottom: '1rem', zIndex: 9999 }}>
+      {/* Gesture images and labels */}
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginRight: '1rem', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Image src="/images/gestures/fist.jpg" alt="Closed Fist" width={56} height={56} style={{ borderRadius: '0.5rem', border: '1px solid #f55', background: '#222' }} />
+          <span style={{ marginTop: '0.5rem', color: '#f55', fontSize: '0.92rem', fontFamily: 'monospace' }}>Stop rotation</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Image src="/images/gestures/open-palm.jpg" alt="Open Palm" width={56} height={56} style={{ borderRadius: '0.5rem', border: '1px solid #6f6', background: '#222' }} />
+          <span style={{ marginTop: '0.5rem', color: '#6f6', fontSize: '0.92rem', fontFamily: 'monospace' }}>Resume rotation</span>
+        </div>
+      </div>
+      {/* Existing overlay */}
+      <div style={{ background: 'rgba(30,30,30,0.85)', color: '#fff', padding: '1rem', borderRadius: '0.5rem', fontFamily: 'monospace', fontSize: '0.95rem', minWidth: '220px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)', pointerEvents: 'none' }}>
+        <div><b>PalmPause Debug</b></div>
+        <div>Status: <span style={{color: status==='error'?'#f55':status==='running'?'#6f6':'#aaa'}}>{status}</span></div>
+        <div>avgDist: <span>{avgDist !== null ? avgDist.toFixed(4) : 'n/a'}</span></div>
+        <div>Gesture: <span style={{color: paused ? '#f55' : '#6f6'}}>{paused ? 'Closed fist' : 'Open palm'}</span></div>
+      </div>
     </div>
   );
 } 
