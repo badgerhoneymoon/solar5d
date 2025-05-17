@@ -1,4 +1,5 @@
 import React from 'react'
+import solarParams from '../info/solar-params.json'
 
 interface Planet {
   name: string
@@ -37,8 +38,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
         let fact = p?.unusual_facts?.[0]
         const emoji = lifeEmoji[focusedPlanet] || '❓'
         if (!p && focusedPlanet === 'Sun') {
-          // @ts-ignore: solarParams.sun is not in planets
-          const sun = require('../info/solar-params.json').sun
+          const sun = solarParams.sun
           fact = sun.unusual_facts?.[0]
           p = sun
         }
