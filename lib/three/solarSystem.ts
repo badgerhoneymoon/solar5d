@@ -10,8 +10,7 @@ import { getPlanetTextures } from './textureLoader'
 // =========================
 // Visual scaling/layout constants
 // =========================
-export const PLANET_SPREAD = 160; // Distance factor between planet orbits (affects spacing)
-export const START_OFFSET = 10;   // Offset for Mercury's distance (shifts all orbits outward)
+export const PLANET_SPREAD = 360; // Distance factor between planet orbits (affects spacing)
 
 // =========================
 // Solar system mesh/visual constants
@@ -20,7 +19,7 @@ const SUN_SEGMENTS = 64; // Number of segments for the sun's sphere geometry (sm
 const PLANET_SEGMENTS = 64; // Number of segments for planet sphere geometry (smoothness)
 const ORBIT_SEGMENTS = 128; // Number of segments for orbit line geometry (smoothness of orbit circle)
 const ORBIT_COLOR = 'white'; // Color of the orbit lines (white)
-const ORBIT_OPACITY = 0.1; // Opacity of the orbit lines (semi-transparent)
+const ORBIT_OPACITY = 0.2; // Opacity of the orbit lines (semi-transparent)
 const ORBIT_TRANSPARENT = true; // Whether orbit lines are rendered as transparent
 const AXIS_COLOR = 'white'; // Color for rotation axis lines (green)
 const AXIS_OPACITY = 0.3; // Opacity for axis lines (more transparent)
@@ -62,14 +61,12 @@ interface Scales {
  * @param params - Solar system parameters (sun and planets)
  * @param scales - Scaling functions and constants
  * @param planetSpread - Spread factor for planet distances
- * @param startOffset - Offset for planet distances
  * @returns Array of THREE.Mesh objects (Sun + planets)
  */
 export function createSolarSystemObjects(
   params: SolarParams,
   scales: Scales,
-  planetSpread: number,
-  startOffset: number
+  planetSpread: number
 ): THREE.Object3D[] {
   const meshes: THREE.Object3D[] = []
 
@@ -108,7 +105,8 @@ export function createSolarSystemObjects(
   const planetCount = params.planets.length
   params.planets.forEach((planet, i) => {
     const radius = RADIUS_MIN + scales.radius(planet.radius_km, RADIUS_MAX - RADIUS_MIN)
-    const distance = scales.distance(planet.distance_from_sun_million_km, planetSpread, startOffset)
+    // dynamic offset = sun radius so planets clear the sun
+    const distance = scales.distance(planet.distance_from_sun_million_km, planetSpread, sunRadius)
 
     // Orbit (XZ plane)
     const orbitGeometry = new THREE.BufferGeometry()

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, CSSProperties } from 'react'
 import solarParams from '../info/solar-params.json'
 import { createScene, createSolarCamera, createRenderer, createControls, setEquirectangularSkybox } from '../lib/three/setupScene'
 import { updateSolarSystem } from '../lib/three/tick'
-import { createSolarSystemObjects, PLANET_SPREAD as INIT_PLANET_SPREAD, START_OFFSET as INIT_START_OFFSET } from '../lib/three/solarSystem'
+import { createSolarSystemObjects, PLANET_SPREAD as INIT_PLANET_SPREAD } from '../lib/three/solarSystem'
 import { getSolarSystemScales } from '../lib/three/scaling'
 import { handleResize } from '../lib/three/resize'
 import Overlay from '../components/Overlay'
@@ -37,8 +37,6 @@ export default function Home() {
   // --- STATE ---
   // State for controlling planet spread (distance between planets)
   const [planetSpread, setPlanetSpread] = useState(INIT_PLANET_SPREAD)
-  // State for initial offset of planets (not currently updated after mount)
-  const [startOffset] = useState(INIT_START_OFFSET)
   // Multiplier to speed up time for visible spin and orbit animations
   const timeMultiplier = TIME_MULTIPLIER
   // GUI options for pausing orbit and spin
@@ -88,8 +86,7 @@ export default function Home() {
     const meshes = createSolarSystemObjects(
       { sun: solarParams.sun, planets: solarParams.planets },
       scales,
-      planetSpread,
-      startOffset
+      planetSpread
     )
     // Add all meshes to the scene
     meshes.forEach(mesh => scene.add(mesh))
@@ -121,11 +118,8 @@ export default function Home() {
         focusOnObject(mesh, radius)
       },
       () => {
-        // Smooth top-down reset: center system with easing
-        resetCamera(
-          new THREE.Vector3(0, 50, 50),
-          new THREE.Vector3(0, 0, 0)
-        )
+        // Smooth reset to initial camera state
+        resetCamera()
       },
       handGesturesEnabled,
       setHandGesturesEnabled
@@ -142,7 +136,7 @@ export default function Home() {
       const deltaSec = clock.getDelta() * timeMultiplier
       // Update planet/sun positions and rotations
       updateSolarSystem([solarParams.sun, ...solarParams.planets], meshes, deltaSec, { orbitPaused: guiOptions.current.orbitPaused, spinPaused: guiOptions.current.spinPaused })
-      // FIRST_EDIT: replace direct tracking and controls update with conditional logic
+      // toggle between tracking and OrbitControls update
       if (updateTrackingCamera()) {
         // camera tracking active, skip control damping
       } else {
@@ -173,7 +167,7 @@ export default function Home() {
       // Dispose of label manager and its DOM elements
       labelMgr.dispose()
     }
-  }, [planetSpread, startOffset])
+  }, [planetSpread])
 
   // Palm open/closed detection for orbit and spin pause
   usePalmPause(

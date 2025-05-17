@@ -17,6 +17,8 @@ const RESET_FINISH_THRESHOLD = 0.01
 let trackedObject: THREE.Object3D | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let controls: OrbitControls | null = null
+let initialCameraPos: THREE.Vector3 | null = null
+let initialCameraTarget: THREE.Vector3 | null = null
 let offset = DEFAULT_OFFSET
 let lerpAlpha = DEFAULT_LERP_ALPHA
 const resetLerpAlpha = DEFAULT_RESET_LERP_ALPHA
@@ -32,6 +34,14 @@ export function initObjectTrackingCamera(
 ) {
   camera = cam
   controls = ctrls
+  // Save initial camera position and target for reset
+  initialCameraPos = cam.position.clone()
+  initialCameraTarget = ctrls.target.clone()
+  // Cancel any reset in progress on user interaction
+  controls.addEventListener('start', () => {
+    resetTargetPos = null
+    resetTargetFocus = null
+  })
   offset = defaultOffset
   lerpAlpha = objectLerpAlpha
 }
@@ -51,11 +61,13 @@ export function clearTracking() {
   trackedObject = null
 }
 
-// Smoothly reset camera to a default position and target
-export function resetCamera(defaultPos: THREE.Vector3, defaultTarget: THREE.Vector3) {
+// Smoothly reset camera to the initial position and target
+export function resetCamera() {
   trackedObject = null
-  resetTargetPos = defaultPos.clone()
-  resetTargetFocus = defaultTarget.clone()
+  if (initialCameraPos && initialCameraTarget) {
+    resetTargetPos = initialCameraPos.clone()
+    resetTargetFocus = initialCameraTarget.clone()
+  }
 }
 
 // Update camera position and target each frame
@@ -85,7 +97,7 @@ export function updateTrackingCamera() {
       resetTargetPos = null
       resetTargetFocus = null
     }
-    return true
+    return false
   }
   // No tracking or reset in progress
   return false

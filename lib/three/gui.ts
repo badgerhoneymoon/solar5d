@@ -13,7 +13,7 @@ export function setupSolarSystemGUI(
 ) {
   const gui = new GUI()
   gui.title('Solar System Controls')
-  gui.add({ planetSpread }, 'planetSpread', 10, 200, 1).onChange(setPlanetSpread)
+  gui.add({ planetSpread }, 'planetSpread', 300, 1000, 1).onChange(setPlanetSpread)
   gui.add(guiOptionsRef.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptionsRef.current.orbitPaused = v })
   gui.add(guiOptionsRef.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptionsRef.current.spinPaused = v })
 
