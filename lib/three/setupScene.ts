@@ -6,6 +6,11 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 export const CAMERA_FOV = 75
 export const DEFAULT_CAMERA_Z = 50
 
+// === Camera Angle Constants ===
+export const INITIAL_CAMERA_RADIUS = 75 // Distance from origin
+export const INITIAL_CAMERA_AZIMUTH = Math.PI / 8 // Horizontal angle (radians, 0 = +X, PI/2 = +Z)
+export const INITIAL_CAMERA_POLAR = Math.PI / 3    // Vertical angle (radians, 0 = up, PI/2 = horizontal)
+
 // Create and return a new THREE.Scene
 export function createScene() {
   return new THREE.Scene()
@@ -53,7 +58,13 @@ export function setEquirectangularSkybox(
 
 export function createSolarCamera(width: number, height: number) {
   const camera = new THREE.PerspectiveCamera(CAMERA_FOV, width / height, 0.1, 1000)
-  camera.position.set(0, DEFAULT_CAMERA_Z, DEFAULT_CAMERA_Z)
+  // Set camera position using spherical coordinates for easy angle tweaking
+  const spherical = new THREE.Spherical(
+    INITIAL_CAMERA_RADIUS,
+    INITIAL_CAMERA_POLAR,
+    INITIAL_CAMERA_AZIMUTH
+  )
+  camera.position.setFromSpherical(spherical)
   camera.lookAt(0, 0, 0)
   return camera
 }
