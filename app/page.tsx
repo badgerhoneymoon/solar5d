@@ -19,6 +19,7 @@ import { setupSolarSystemGUI } from '../lib/three/gui'
 import usePalmPause from '../hooks/usePalmPause'
 import * as THREE from 'three'
 import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCamera } from '../lib/three/objectTrackingCamera'
+import PalmPauseDebugOverlay from '../components/PalmPauseDebugOverlay'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
@@ -207,6 +208,7 @@ export default function Home() {
         />
       </div>
       <Overlay planets={solarParams.planets} focusedPlanet={focusedPlanet} />
+      {handGesturesEnabled && <PalmPauseDebugOverlay />}
     </>
   )
 }

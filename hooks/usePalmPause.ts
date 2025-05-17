@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Camera } from '@mediapipe/camera_utils';
 
 const HANDS_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands';
@@ -25,6 +25,10 @@ export default function usePalmPause(
   onPauseChange: (paused: boolean) => void,
   threshold: number = PALM_PAUSE_THRESHOLD
 ) {
+  // Use a ref to always point to the latest callback
+  const callbackRef = useRef(onPauseChange);
+  callbackRef.current = onPauseChange;
+
   useEffect(() => {
     let active = true;
     if (!initPromise) {
@@ -60,17 +64,15 @@ export default function usePalmPause(
         globalCamera.start();
       })();
     }
-    initPromise.then(() => {
-      if (!active) return;
-      const handler = (e: Event) => {
-        const dist = (e as CustomEvent<number>).detail;
-        onPauseChange(dist < threshold);
-      };
-      window.addEventListener('palmPause', handler);
-      return () => {
-        active = false;
-        window.removeEventListener('palmPause', handler);
-      };
-    });
-  }, [onPauseChange, threshold]);
+    // Stable event handler that always calls the latest callback
+    const handler = (e: Event) => {
+      const dist = (e as CustomEvent<number>).detail;
+      callbackRef.current(dist < threshold);
+    };
+    window.addEventListener('palmPause', handler);
+    return () => {
+      active = false;
+      window.removeEventListener('palmPause', handler);
+    };
+  }, [threshold]);
 } 
