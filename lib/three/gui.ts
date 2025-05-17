@@ -8,18 +8,12 @@ export function setupSolarSystemGUI(
   focusTargets: { name: string; mesh: THREE.Object3D }[],
   onFocus: (name: string, mesh: THREE.Object3D) => void,
   onResetCamera: () => void,
-  handGesturesEnabled: boolean,
-  setHandGesturesEnabled: (v: boolean) => void
 ) {
   const gui = new GUI()
   gui.title('Solar System Controls')
   gui.add({ planetSpread }, 'planetSpread', 300, 1000, 1).onChange(setPlanetSpread)
   gui.add(guiOptionsRef.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptionsRef.current.orbitPaused = v })
   const spinController = gui.add(guiOptionsRef.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptionsRef.current.spinPaused = v })
-
-  // Add hand gesture toggle in its own folder
-  const handFolder = gui.addFolder('Hand Gestures')
-  handFolder.add({ handGesturesEnabled }, 'handGesturesEnabled').name('Enable').onChange(setHandGesturesEnabled)
 
   // Add folder for camera controls
   const cameraFolder = gui.addFolder('Camera')

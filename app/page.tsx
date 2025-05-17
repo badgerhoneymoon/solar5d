@@ -20,6 +20,7 @@ import usePalmPause from '../hooks/usePalmPause'
 import * as THREE from 'three'
 import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCamera } from '../lib/three/objectTrackingCamera'
 import PalmPauseDebugOverlay from '../components/PalmPauseDebugOverlay'
+import ToggleImageSwitch from '../components/ui/toggle-image-switch'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
@@ -49,6 +50,8 @@ export default function Home() {
   const [skyboxLoading, setSkyboxLoading] = useState(true)
   // State for enabling/disabling hand gestures
   const [handGesturesEnabled, setHandGesturesEnabled] = useState(false)
+  // State for enabling/disabling voice mode
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false)
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
@@ -133,9 +136,7 @@ export default function Home() {
         guiOptions.current.spinPaused = false
         // Reflect in GUI
         spinController.updateDisplay()
-      },
-      handGesturesEnabled,
-      setHandGesturesEnabled
+      }
     )
 
     // --- WINDOW RESIZE HANDLING ---
@@ -208,6 +209,36 @@ export default function Home() {
         />
       </div>
       <Overlay planets={solarParams.planets} focusedPlanet={focusedPlanet} />
+      {/* Voice mode button */}
+      <ToggleImageSwitch
+        enabled={voiceModeEnabled}
+        onToggle={() => setVoiceModeEnabled(!voiceModeEnabled)}
+        label="Voice"
+        enabledLabel="Disable"
+        disabledLabel="Voice"
+        enabledBorder="2px solid #fa0"
+        disabledBorder="2px solid #fff200"
+        enabledText="#fa0"
+        disabledText="#fff200"
+        image="/images/gestures/mic.jpg"
+        alt={voiceModeEnabled ? 'Disable voice' : 'Enable voice'}
+        style={{ position: 'fixed', right: '1rem', bottom: '20rem', zIndex: 9999 }}
+      />
+      {/* Gestures button */}
+      <ToggleImageSwitch
+        enabled={handGesturesEnabled}
+        onToggle={() => setHandGesturesEnabled(!handGesturesEnabled)}
+        label="Gestures"
+        enabledLabel="Disable"
+        disabledLabel="Gestures"
+        enabledBorder="2px solid #f55"
+        disabledBorder="2px solid #6f6"
+        enabledText="#f55"
+        disabledText="#6f6"
+        image="/images/gestures/gesture_mode.jpg"
+        alt={handGesturesEnabled ? 'Disable gestures' : 'Enable gestures'}
+        style={{ position: 'fixed', right: '1rem', bottom: '11rem', zIndex: 9999 }}
+      />
       {handGesturesEnabled && <PalmPauseDebugOverlay />}
     </>
   )
