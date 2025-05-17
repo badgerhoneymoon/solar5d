@@ -15,7 +15,7 @@ export function setupSolarSystemGUI(
   gui.title('Solar System Controls')
   gui.add({ planetSpread }, 'planetSpread', 300, 1000, 1).onChange(setPlanetSpread)
   gui.add(guiOptionsRef.current, 'orbitPaused').name('Pause Orbit').onChange((v: boolean) => { guiOptionsRef.current.orbitPaused = v })
-  gui.add(guiOptionsRef.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptionsRef.current.spinPaused = v })
+  const spinController = gui.add(guiOptionsRef.current, 'spinPaused').name('Pause Spin').onChange((v: boolean) => { guiOptionsRef.current.spinPaused = v })
 
   // Add hand gesture toggle in its own folder
   const handFolder = gui.addFolder('Hand Gestures')
@@ -31,5 +31,5 @@ export function setupSolarSystemGUI(
     focusFolder.add({ [name]: () => onFocus(name, mesh) }, name)
   })
 
-  return () => gui.destroy()
+  return { cleanup: () => gui.destroy(), spinController }
 } 

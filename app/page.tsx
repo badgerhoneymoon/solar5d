@@ -100,7 +100,7 @@ export default function Home() {
         mesh: meshes.find(m => m.name === p.name)!
       })),
     ]
-    const cleanupGUI = setupSolarSystemGUI(
+    const { cleanup: cleanupGUI, spinController } = setupSolarSystemGUI(
       planetSpread,
       setPlanetSpread,
       guiOptions,
@@ -116,10 +116,18 @@ export default function Home() {
           radius = (meshAsMesh.geometry as any).parameters.radius as number
         }
         focusOnObject(mesh, radius)
+        // Pause spinning when focusing via GUI control
+        guiOptions.current.spinPaused = true
+        // Reflect in GUI
+        spinController.updateDisplay()
       },
       () => {
         // Smooth reset to initial camera state
         resetCamera()
+        // Resume spinning when resetting focus
+        guiOptions.current.spinPaused = false
+        // Reflect in GUI
+        spinController.updateDisplay()
       },
       handGesturesEnabled,
       setHandGesturesEnabled

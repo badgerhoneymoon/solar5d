@@ -33,8 +33,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets }) => {
         minWidth: 180,
       }}
     >
-      <div>Scale: <b>Logarithmic</b></div>
-      <div>Planet color: <b>by temperature</b></div>
+      <div>Scale: <b>Linear</b></div>
       <div style={{ fontSize: 12, opacity: 0.8 }}>
         Range: {minTemp} K – {maxTemp} K
       </div>
