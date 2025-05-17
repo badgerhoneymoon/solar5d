@@ -35,7 +35,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
         // Try to find in planets, then fall back to sun
         let p = planets.find(p => p.name === focusedPlanet)
         let fact = p?.unusual_facts?.[0]
-        let emoji = lifeEmoji[focusedPlanet] || '❓'
+        const emoji = lifeEmoji[focusedPlanet] || '❓'
         if (!p && focusedPlanet === 'Sun') {
           // @ts-ignore: solarParams.sun is not in planets
           const sun = require('../info/solar-params.json').sun
