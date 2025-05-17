@@ -1,13 +1,13 @@
 import { OpenAI } from 'openai';
 
 // Ensure the API key is set
-if (!process.env.OPENAI_API_KEY) {
+if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
   throw new Error('Missing OPENAI_API_KEY environment variable');
 }
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 
 /**
