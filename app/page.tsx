@@ -245,6 +245,8 @@ export default function Home() {
           setHardStopWarning(msg)
           setTimeout(() => setHardStopWarning(null), 10000)
         })
+        // Subscribe to transcript streaming events
+        voiceServiceRef.current.on('recordingStopped', () => setVoiceRecording(false))
       }
       voiceServiceRef.current.startRecording()
     } else {

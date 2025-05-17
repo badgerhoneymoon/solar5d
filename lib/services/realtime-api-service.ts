@@ -33,6 +33,10 @@ interface VoiceServiceEvent {
         required: string[]; // List of required parameter names
       };
     }>;
+    modalities?: string[]; // Optional modalities to request text and audio
+  };
+  response?: { // Optional response field for response.create events
+    modalities: string[];
   };
   item?: { // Optional item details, related to specific conversation events like function calls/outputs
     type: string; // Type of item (e.g., 'function_call', 'function_call_output')
@@ -140,14 +144,17 @@ export class VoiceService extends EventEmitter {
       await this.peerConnection.setLocalDescription(offer);
 
       this.emit('debug', 'Sending offer to OpenAI...');
-      const response = await fetch('https://api.openai.com/v1/realtime?model=gpt-4o-mini-realtime-preview-2024-12-17', {
-        method: 'POST',
-        body: offer.sdp,
-        headers: {
-          'Authorization': `Bearer ${this.openAiKey}`,
-          'Content-Type': 'application/sdp'
-        },
-      });
+      // Proxy the SDP offer through our Next.js API route to avoid CORS and hide API key
+      const response = await fetch(
+        `/api/open-ai-realtime?model=${encodeURIComponent('gpt-4o-mini-realtime-preview-2024-12-17')}`,
+        {
+          method: 'POST',
+          body: offer.sdp,
+          headers: {
+            'Content-Type': 'application/sdp'
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to connect to OpenAI: ${response.statusText}`);
@@ -158,6 +165,8 @@ export class VoiceService extends EventEmitter {
         type: 'answer',
         sdp: await response.text()
       });
+      // Request assistant response now that connection is established (stream text and audio)
+      this._sendEvent({ type: 'response.create', response: { modalities: ['text', 'audio'] } });
 
       this.isRecording = true;
       this.emit('recordingStarted');
@@ -192,10 +201,40 @@ export class VoiceService extends EventEmitter {
   private setupDataChannelHandlers() {
     if (!this.dataChannel) return;
 
-    this.dataChannel.onopen = () => this._sendSessionUpdate();
+    this.dataChannel.onopen = () => {
+      this.emit('debug', 'DataChannel opened');
+      this._sendSessionUpdate();
+    };
+    this.dataChannel.onclose = () => {
+      this.emit('debug', 'DataChannel closed');
+    };
     this.dataChannel.onmessage = async (event) => {
+      // Debug log message types
+      try {
+        const raw = event.data;
+        let parsed;
+        try { parsed = JSON.parse(raw); }
+        catch { parsed = raw; }
+        this.emit('debug', `DataChannel message: ${parsed.type || '[non-JSON message]'}`);
+      } catch {};
       try {
         const data = JSON.parse(event.data);
+        
+        // assistant text streaming events
+        switch (data.type) {
+          case 'response.text.delta':
+            this.emit('assistantTextDelta', data.delta as string);
+            break;
+          case 'response.text.done':
+            this.emit('assistantTextDone', data.text as string);
+            break;
+          case 'response.audio_transcript.delta':
+            this.emit('assistantTranscriptDelta', data.delta as string);
+            break;
+          case 'response.audio_transcript.done':
+            this.emit('assistantTranscriptDone', data.text as string);
+            break;
+        }
         
         // Check for function call events (either creation or argument completion)
         if (data.type === 'conversation.item.created' && data.item?.type === 'function_call' ||
@@ -249,7 +288,8 @@ export class VoiceService extends EventEmitter {
             },
             required: ['name']
           }
-        }]
+        }],
+        modalities: ['text', 'audio'], // Enable both text and audio modalities
       }
     });
   }
@@ -282,7 +322,8 @@ export class VoiceService extends EventEmitter {
     });
     // 2) Immediately trigger model to continue speaking based on the tool result
     this._sendEvent({
-      type: 'response.create'
+      type: 'response.create',
+      response: { modalities: ['text', 'audio'] } // Request streaming text and audio
     });
   }
 
