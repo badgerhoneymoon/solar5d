@@ -6,7 +6,10 @@
       "rotation_speed_kmh": 7200,
       "orbital_speed_kms": 0,
       "temperature_k": 5778,
-      "axis_angle_deg": 7.25
+      "axis_angle_deg": 7.25,
+      "unusual_facts": [
+        "The Sun's core reaches about 15 million Celsius (converted from Kelvin), converting roughly 600 million tons of hydrogen into helium every second through nuclear fusion."
+      ]
     },
     "planets": [
       {
@@ -16,7 +19,10 @@
         "rotation_speed_kmh": 10.89,
         "orbital_speed_kms": 47.36,
         "temperature_k": 440,
-        "axis_angle_deg": 0.034
+        "axis_angle_deg": 0.034,
+        "unusual_facts": [
+          "Mercury harbors water ice in permanently shadowed polar craters despite surface temperatures soaring above 427°C."
+        ]
       },
       {
         "name": "Venus",
@@ -25,7 +31,10 @@
         "rotation_speed_kmh": -6.52,
         "orbital_speed_kms": 35.02,
         "temperature_k": 737,
-        "axis_angle_deg": 177.4
+        "axis_angle_deg": 177.4,
+        "unusual_facts": [
+          "A single rotation on Venus takes about 243 Earth days—longer than its 225-day orbit around the Sun due to its retrograde spin."
+        ]
       },
       {
         "name": "Earth",
@@ -34,7 +43,10 @@
         "rotation_speed_kmh": 1670,
         "orbital_speed_kms": 29.78,
         "temperature_k": 288,
-        "axis_angle_deg": 23.44
+        "axis_angle_deg": 23.44,
+        "unusual_facts": [
+          "Earth's inner core reaches temperatures around 5527°C, nearly as hot as the Sun's visible surface."
+        ]
       },
       {
         "name": "Mars",
@@ -43,7 +55,10 @@
         "rotation_speed_kmh": 868,
         "orbital_speed_kms": 24.07,
         "temperature_k": 210,
-        "axis_angle_deg": 25.19
+        "axis_angle_deg": 25.19,
+        "unusual_facts": [
+          "Olympus Mons on Mars is the tallest volcano in the Solar System, towering nearly 22 km high—almost three times Mount Everest."
+        ]
       },
       {
         "name": "Jupiter",
@@ -52,7 +67,10 @@
         "rotation_speed_kmh": 45000,
         "orbital_speed_kms": 13.07,
         "temperature_k": 165,
-        "axis_angle_deg": 3.13
+        "axis_angle_deg": 3.13,
+        "unusual_facts": [
+          "Jupiter emits about 1.6 times more energy than it receives from the Sun, leftover heat from its formation."
+        ]
       },
       {
         "name": "Saturn",
@@ -61,7 +79,10 @@
         "rotation_speed_kmh": 35000,
         "orbital_speed_kms": 9.69,
         "temperature_k": 134,
-        "axis_angle_deg": 26.73
+        "axis_angle_deg": 26.73,
+        "unusual_facts": [
+          "Saturn's rings span more than 280,000 km yet are less than 10 meters thick in places."
+        ]
       },
       {
         "name": "Uranus",
@@ -70,7 +91,10 @@
         "rotation_speed_kmh": -9360,
         "orbital_speed_kms": 6.81,
         "temperature_k": 76,
-        "axis_angle_deg": 97.77
+        "axis_angle_deg": 97.77,
+        "unusual_facts": [
+          "Uranus rolls around the Sun on its side with a 98° axial tilt, giving each pole 42 years of continuous daylight or darkness."
+        ]
       },
       {
         "name": "Neptune",
@@ -79,7 +103,10 @@
         "rotation_speed_kmh": 9700,
         "orbital_speed_kms": 5.43,
         "temperature_k": 72,
-        "axis_angle_deg": 28.32
+        "axis_angle_deg": 28.32,
+        "unusual_facts": [
+          "Neptune's winds can exceed 2,100 km/h, making them the fastest in the Solar System."
+        ]
       }
     ]
   }

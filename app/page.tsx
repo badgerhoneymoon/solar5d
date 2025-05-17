@@ -37,6 +37,8 @@ export default function Home() {
   // --- STATE ---
   // State for controlling planet spread (distance between planets)
   const [planetSpread, setPlanetSpread] = useState(INIT_PLANET_SPREAD)
+  // State for tracking the currently focused planet for facts overlay
+  const [focusedPlanet, setFocusedPlanet] = useState<string | null>(null)
   // Multiplier to speed up time for visible spin and orbit animations
   const timeMultiplier = TIME_MULTIPLIER
   // GUI options for pausing orbit and spin
@@ -116,6 +118,7 @@ export default function Home() {
           radius = (meshAsMesh.geometry as any).parameters.radius as number
         }
         focusOnObject(mesh, radius)
+        setFocusedPlanet(name)
         // Pause spinning when focusing via GUI control
         guiOptions.current.spinPaused = true
         // Reflect in GUI
@@ -124,6 +127,7 @@ export default function Home() {
       () => {
         // Smooth reset to initial camera state
         resetCamera()
+        setFocusedPlanet(null)
         // Resume spinning when resetting focus
         guiOptions.current.spinPaused = false
         // Reflect in GUI
@@ -202,7 +206,7 @@ export default function Home() {
           style={CANVAS_STYLE}
         />
       </div>
-      <Overlay planets={solarParams.planets} />
+      <Overlay planets={solarParams.planets} focusedPlanet={focusedPlanet} />
     </>
   )
 }
