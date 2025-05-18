@@ -65,6 +65,10 @@ export class VoiceService extends EventEmitter {
   // Timeout ID for enforcing max recording duration (in ms)
   private hardStopTimeout: number | null = null;
 
+  // === VoiceService timing constants ===
+  private readonly VOICE_WARNING_TIMEOUT_MS = 20000; // 20 seconds
+  private readonly VOICE_HARD_STOP_TIMEOUT_MS = 60000; // 1 minute
+
   /**
    * Creates an instance of VoiceService.
    * @param openAiKey - The API key for OpenAI authentication.
@@ -172,15 +176,15 @@ export class VoiceService extends EventEmitter {
       this.emit('recordingStarted');
       console.log('[VoiceService] Emitted recordingStarted event');
       this.emit('debug', 'Recording session started successfully');
-      // Warn user 5 seconds after recording starts
+      // Warn user N seconds after recording starts
       window.setTimeout(() => {
         this.emit('hardStopWarning', 'AI speaking is limited to 60 seconds for public demo purposes.');
-      }, 30000);
+      }, this.VOICE_WARNING_TIMEOUT_MS);
       // Schedule hard stop after 1 minute
       this.hardStopTimeout = window.setTimeout(() => {
         this.emit('debug', 'Recording time limit of 1 minute reached, stopping recording');
         this.stopRecording();
-      }, 60000); // 1 minute
+      }, this.VOICE_HARD_STOP_TIMEOUT_MS); // 1 minute
 
     } catch (err) {
       this.emit('error', new Error('Failed to start recording: ' + (err as Error).message));
@@ -272,7 +276,7 @@ export class VoiceService extends EventEmitter {
     this._sendEvent({
       type: 'session.update',
       session: {
-        instructions: `You are a cosmologist-educator in the style of David Attenborough. Treat every space object as an animal. If a user asks about, mentions, or wants to hear a story, fact, or information about any planet or the sun, you MUST call the focus_planet tool BEFORE answering, even if the user just wants to know about it, hear a story, or asks indirectly. Never answer about a planet or the sun without first calling the tool.`,
+        instructions: `You are a cosmologist-educator in the style of David Attenborough. Treat every space object as an animal. If a user asks about, mentions, or wants to hear a story, fact, or information about any planet or the sun, you MUST call the focus_planet tool BEFORE answering, even if the user just wants to know about it, hear a story, or asks indirectly. Never answer about a planet or the sun without first calling the tool. If you encounter any technical issues, do not mention them to the user—just keep going and ignore them.`,
         tools: [{
           type: 'function',
           name: 'focus_planet',

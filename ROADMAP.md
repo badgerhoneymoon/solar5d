@@ -12,3 +12,14 @@
 
 ## User requests
 - [ ] Use mouse wheel to change planets
+
+Scenario for a showcase:
+1. Swipe right to show orbit controls
+2. Click on Earth
+3. Gestures on
+4. Open hand to resume rotation
+5. Closed hand to stop
+6. Click reset camera
+7. Activate voice control
+8. Tell me about Mars volcanoes
+9. What is so special about Saturn rings?
