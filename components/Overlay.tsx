@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import solarParams from '../info/solar-params.json'
 import { isMobile } from '../lib/utils/mobile'
 
@@ -14,6 +14,12 @@ interface OverlayProps {
 }
 
 const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const temps = planets.map(p => p.temperature_k)
   const minTemp = Math.min(...temps)
   const maxTemp = Math.max(...temps)
@@ -74,7 +80,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
         )
       })()}
       {/* Hide scale/range overlay on mobile devices */}
-      {!isMobile() && (
+      {mounted && !isMobile() && (
         <div
           style={{
             position: 'fixed',

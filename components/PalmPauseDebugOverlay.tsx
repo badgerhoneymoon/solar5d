@@ -31,6 +31,8 @@ export default function PalmPauseDebugOverlay() {
 
   // Monkey-patch: Listen for avgDist in the global window for debug
   React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     window.__PALM_PAUSE_DEBUG__ = (dist: number) => {
       setAvgDist(dist);
       lastAvgDistRef.current = dist;

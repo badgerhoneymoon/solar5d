@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 
-import { useEffect, useRef, useState, CSSProperties } from 'react'
+import { useEffect, useRef, useState, CSSProperties, useMemo } from 'react'
 import solarParams from '../info/solar-params.json'
 import { createScene, createSolarCamera, createRenderer, createControls, setEquirectangularSkybox } from '../lib/three/setupScene'
 import { updateSolarSystem } from '../lib/three/tick'
@@ -55,39 +55,57 @@ export default function Home() {
   // State for enabling/disabling voice mode
   const [voiceModeEnabled, setVoiceModeEnabled] = useState(false)
   const [voiceRecording, setVoiceRecording] = useState(false)
+  // State for mobile detection (to prevent hydration mismatch)
+  const [isMobileDevice, setIsMobileDevice] = useState(false)
   const voiceServiceRef = useRef<VoiceService | null>(null)
   const focusTargetsRef = useRef<{ name: string; mesh: THREE.Object3D }[]>([])
   const spinControllerRef = useRef<{ updateDisplay: () => void } | null>(null)
   const [hardStopWarning, setHardStopWarning] = useState<string | null>(null)
 
-  // Mobile-aware button positioning
-  const buttonStyles = {
-    voice: {
+  // Detect mobile after hydration to prevent SSR mismatch
+  useEffect(() => {
+    setIsMobileDevice(isMobile())
+  }, [])
+
+  // Mobile-aware button positioning - memoized to prevent hydration issues
+  const buttonStyles = useMemo(() => {
+    const baseVoiceStyle: CSSProperties = {
       position: 'fixed' as const,
-      right: isMobile() ? '0.5rem' : '1rem',
-      bottom: isMobile() ? '7rem' : '20rem',
+      right: isMobileDevice ? '0.5rem' : '1rem',
+      bottom: isMobileDevice ? '7rem' : '20rem',
       zIndex: 9999,
       transformOrigin: 'center center' as const,
-      animation: voiceRecording ? 'pulse-scale 1s infinite ease-in-out' : undefined,
-      ...(isMobile() && {
-        transform: 'scale(0.7)',
-        transformOrigin: 'bottom right'
-      })
-    },
-    gesture: {
-      position: 'fixed' as const,
-      right: isMobile() ? '0.5rem' : '1rem',
-      bottom: isMobile() ? '0.5rem' : '11rem',
-      zIndex: 9999,
-      ...(isMobile() && {
+      ...(isMobileDevice && {
         transform: 'scale(0.7)',
         transformOrigin: 'bottom right'
       })
     }
-  }
+    
+    // Only add animation when needed to avoid undefined values
+    if (voiceRecording) {
+      baseVoiceStyle.animation = 'pulse-scale 1s infinite ease-in-out'
+    }
+
+    return {
+      voice: baseVoiceStyle,
+      gesture: {
+        position: 'fixed' as const,
+        right: isMobileDevice ? '0.5rem' : '1rem',
+        bottom: isMobileDevice ? '0.5rem' : '11rem',
+        zIndex: 9999,
+        ...(isMobileDevice && {
+          transform: 'scale(0.7)',
+          transformOrigin: 'bottom right'
+        })
+      }
+    }
+  }, [isMobileDevice, voiceRecording])
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
+    // Guard against SSR
+    if (typeof window === 'undefined') return
+
     // --- INITIAL SETUP ---
     // Get initial window size
     const sizes = {

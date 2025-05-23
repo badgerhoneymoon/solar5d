@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 interface ToggleImageSwitchProps {
@@ -34,6 +34,17 @@ const ToggleImageSwitch: React.FC<ToggleImageSwitchProps> = ({
   width = 96,
   height = 96,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render anything on server to prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div style={{ ...style, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <span
