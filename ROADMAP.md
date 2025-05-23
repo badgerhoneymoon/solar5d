@@ -3,12 +3,15 @@
 - [] Rotatioin axis are not centered - from one pole it could be more extended than from the other
 - [] Even tho rings are right at the center it seams to be off-center (shadows?)
 - [] At some point labels are misaligned
+- [] If I turn on voice and then turn off quickly it will not shut it down
 
 ## Features
 - [x] Add Saturn's rings
-- [ ] Realtime API uses planet on focus and tell a story about peculiarities of the planet
+- [x] Realtime API uses planet on focus and tell a story about peculiarities of the planet
 - [x] Add unusual facts overlay for each planet
 - [ ] In voice mode, how about we would add streaming text of summary of the response
+- [] Asteroid belt
+- [] Earth can be zoomed in using Celesium.js
 
 ## User requests
 - [ ] Use mouse wheel to change planets
@@ -23,3 +26,6 @@ Scenario for a showcase:
 7. Activate voice control
 8. Tell me about Mars volcanoes
 9. What is so special about Saturn rings?
+
+Textures others used:
+https://planetpixelemporium.com/earth.html

@@ -22,6 +22,7 @@ import { initObjectTrackingCamera, focusOnObject, updateTrackingCamera, resetCam
 import PalmPauseDebugOverlay from '../components/PalmPauseDebugOverlay'
 import ToggleImageSwitch from '../components/ui/toggle-image-switch'
 import { VoiceService } from '../lib/services/realtime-api-service'
+import { isMobile } from '../lib/utils/mobile'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
@@ -58,6 +59,32 @@ export default function Home() {
   const focusTargetsRef = useRef<{ name: string; mesh: THREE.Object3D }[]>([])
   const spinControllerRef = useRef<{ updateDisplay: () => void } | null>(null)
   const [hardStopWarning, setHardStopWarning] = useState<string | null>(null)
+
+  // Mobile-aware button positioning
+  const buttonStyles = {
+    voice: {
+      position: 'fixed' as const,
+      right: isMobile() ? '0.5rem' : '1rem',
+      bottom: isMobile() ? '7rem' : '20rem',
+      zIndex: 9999,
+      transformOrigin: 'center center' as const,
+      animation: voiceRecording ? 'pulse-scale 1s infinite ease-in-out' : undefined,
+      ...(isMobile() && {
+        transform: 'scale(0.7)',
+        transformOrigin: 'bottom right'
+      })
+    },
+    gesture: {
+      position: 'fixed' as const,
+      right: isMobile() ? '0.5rem' : '1rem',
+      bottom: isMobile() ? '0.5rem' : '11rem',
+      zIndex: 9999,
+      ...(isMobile() && {
+        transform: 'scale(0.7)',
+        transformOrigin: 'bottom right'
+      })
+    }
+  }
 
   // --- THREE.JS SCENE SETUP & ANIMATION EFFECT ---
   useEffect(() => {
@@ -283,14 +310,7 @@ export default function Home() {
         disabledText="#fff200"
         image="/images/gestures/mic.jpg"
         alt={voiceModeEnabled ? 'Disable voice' : 'Enable voice'}
-        style={{
-          position: 'fixed',
-          right: '1rem',
-          bottom: '20rem',
-          zIndex: 9999,
-          transformOrigin: 'center center',
-          animation: voiceRecording ? 'pulse-scale 1s infinite ease-in-out' : undefined
-        }}
+        style={buttonStyles.voice}
       />
       {/* Gestures button */}
       <ToggleImageSwitch
@@ -305,7 +325,7 @@ export default function Home() {
         disabledText="#6f6"
         image="/images/gestures/gesture_mode.jpg"
         alt={handGesturesEnabled ? 'Disable gestures' : 'Enable gestures'}
-        style={{ position: 'fixed', right: '1rem', bottom: '11rem', zIndex: 9999 }}
+        style={buttonStyles.gesture}
       />
       {handGesturesEnabled && <PalmPauseDebugOverlay />}
       {/* Hard stop warning dialog */}
