@@ -25,16 +25,14 @@ export function createCesiumViewer(containerId: string): Cesium.Viewer {
       })
     );
 
-    // Replace default imagery with Bing Maps Aerial (NO LABELS)
+    // Replace default imagery with Bing Maps with labels
     viewer.imageryLayers.removeAll();
-    Cesium.IonImageryProvider.fromAssetId(2) // Bing Maps Aerial (clean, no labels)
+    Cesium.IonImageryProvider.fromAssetId(2) // Bing Maps Imagery (no labels)
       .then((ionImageryProvider) => {
         if (!viewer.isDestroyed()) {
           viewer.imageryLayers.addImageryProvider(ionImageryProvider);
         }
       });
-
-    // Note: Removed OSM Buildings (they were ugly)
   }
 
   // Disable lighting for uniform globe appearance
