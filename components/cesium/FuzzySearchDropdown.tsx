@@ -115,7 +115,7 @@ export const FuzzySearchDropdown: React.FC<FuzzySearchDropdownProps> = ({
     }
   }, [coordinateMatch, query, justSelectedRef]);
 
-  const debouncedQuery = useDebounce(query, 100);
+  const debouncedQuery = useDebounce(query, 500);
   
   useEffect(() => {
     // This effect can be removed if not used for other purposes beyond logging
