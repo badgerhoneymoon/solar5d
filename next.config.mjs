@@ -1,5 +1,3 @@
-import CopyWebpackPlugin from 'copy-webpack-plugin';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
@@ -27,39 +25,12 @@ const nextConfig = {
       },
     });
 
-    // Copy Cesium static assets to public directory
-    config.plugins.push(
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: 'node_modules/cesium/Build/Cesium/Workers',
-            to: '../public/cesium/Workers',
-          },
-          {
-            from: 'node_modules/cesium/Build/Cesium/ThirdParty',
-            to: '../public/cesium/ThirdParty',
-          },
-          {
-            from: 'node_modules/cesium/Build/Cesium/Assets',
-            to: '../public/cesium/Assets',
-          },
-          {
-            from: 'node_modules/cesium/Build/Cesium/Widgets',
-            to: '../public/cesium/Widgets',
-          },
-        ],
-      })
-    );
-
     return config;
   },
   
   experimental: {
     esmExternals: false,
   },
-  
-  // Enable static file serving for Cesium assets
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/solar5d' : '',
 };
 
 export default nextConfig;
