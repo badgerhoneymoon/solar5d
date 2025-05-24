@@ -1,11 +1,26 @@
 'use client';
 
 import React from 'react';
+import * as THREE from 'three';
 import { CesiumViewer } from './CesiumViewer';
 import { EarthTransitionButton } from './EarthTransitionButton';
 
+interface ThreeJsViewContext {
+  cameraPosition: THREE.Vector3;
+  cameraUp: THREE.Vector3;
+  earthCenterTjs: THREE.Vector3;
+  earthRadiusTjs: number;
+}
+
+interface FocusedEarthDetails {
+  mesh: THREE.Object3D;
+  radiusTjs: number;
+}
+
 interface EarthCesiumIntegrationProps {
   focusedPlanet: string | null;
+  threeCamera: THREE.PerspectiveCamera | null;
+  focusedEarthDetails: FocusedEarthDetails | null;
   onTransitionStart?: () => void;
   onTransitionComplete?: () => void;
   onCesiumVisibilityChange?: (visible: boolean) => void;
@@ -13,12 +28,15 @@ interface EarthCesiumIntegrationProps {
 
 export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
   focusedPlanet,
+  threeCamera,
+  focusedEarthDetails,
   onTransitionStart,
   onTransitionComplete,
   onCesiumVisibilityChange,
 }) => {
   const [cesiumVisible, setCesiumVisible] = React.useState(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const [threeJsViewContextForCesium, setThreeJsViewContextForCesium] = React.useState<ThreeJsViewContext | null>(null);
 
   // Check if we should show the transition button
   const shouldShowButton = focusedPlanet?.toLowerCase() === 'earth' && !cesiumVisible && !isTransitioning;
@@ -30,6 +48,20 @@ export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
     setIsTransitioning(true);
     onTransitionStart?.();
 
+    if (threeCamera && focusedEarthDetails?.mesh) {
+      const earthWorldPosition = new THREE.Vector3();
+      focusedEarthDetails.mesh.getWorldPosition(earthWorldPosition);
+      
+      setThreeJsViewContextForCesium({
+        cameraPosition: threeCamera.position.clone(),
+        cameraUp: threeCamera.up.clone(),
+        earthCenterTjs: earthWorldPosition,
+        earthRadiusTjs: focusedEarthDetails.radiusTjs,
+      });
+    } else {
+      setThreeJsViewContextForCesium(null);
+    }
+
     // Simple: just show Cesium and let it handle the transition
     setCesiumVisible(true);
     
@@ -38,7 +70,7 @@ export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
       setIsTransitioning(false);
       onTransitionComplete?.();
     }, 500);
-  }, [isTransitioning, onTransitionStart, onTransitionComplete]);
+  }, [isTransitioning, onTransitionStart, onTransitionComplete, threeCamera, focusedEarthDetails]);
 
   // Reset to Three.js view
   const resetToThreeJS = React.useCallback(() => {
@@ -75,6 +107,7 @@ export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
       {/* Cesium Viewer */}
       <CesiumViewer
         visible={cesiumVisible}
+        threeJsViewContext={threeJsViewContextForCesium}
         onTransitionComplete={onTransitionComplete}
       />
 

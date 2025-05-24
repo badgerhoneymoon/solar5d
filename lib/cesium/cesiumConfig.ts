@@ -15,12 +15,17 @@ if (typeof window !== 'undefined') {
 export const CAMERA_ALTITUDES = {
   SPACE_OVERVIEW: 20_000_000, // 20,000km - full Earth view for initial position
   BALI_VIEW: 150_000, // 150km - edge of space view with curvature visible
-  SEARCH_RESULT: 10_000, // 10km - altitude when flying to search results
+  SEARCH_RESULT: 150_000, // 150km - altitude when flying to search results
 } as const;
 
 export const CAMERA_ANGLES = {
   LOOK_DOWN: -75, // degrees - near top-down view for space overview
   HORIZON_VIEW: -25, // degrees - oblique view to see terrain and horizon
+} as const;
+
+export const CAMERA_OFFSET = {
+  LANDING_DISTANCE: 200000, // meters - how far back to position camera from target
+  LANDING_BEARING: 180, // degrees - bearing from target (180 = south, camera looks north at target)
 } as const;
 
 export const ANIMATION_TIMINGS = {

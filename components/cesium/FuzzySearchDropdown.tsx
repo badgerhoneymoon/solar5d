@@ -276,7 +276,7 @@ export const FuzzySearchDropdown: React.FC<FuzzySearchDropdownProps> = ({
           ref={dropdownRef}
           className="absolute top-full left-0 right-0 mt-2 bg-black/20 backdrop-blur-lg border border-white/20 rounded-xl shadow-2xl backdrop-saturate-150 overflow-hidden z-[1001]"
         >
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto fuzzy-search-dropdown-scroll">
             {suggestions.map((suggestion, index) => (
               <div
                 key={suggestion.place_id}

@@ -25,6 +25,12 @@ import { VoiceService } from '../lib/services/realtime-api-service'
 import { isMobile } from '../lib/utils/mobile'
 import { EarthCesiumIntegration } from '../components/cesium/EarthCesiumIntegration'
 
+// --- TYPES ---
+interface FocusedEarthDetails {
+  mesh: THREE.Object3D;
+  radiusTjs: number;
+}
+
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
 const SKYBOX_TEXTURE_PATH = '/textures/stars/8k_stars_milky_way.jpg'
@@ -58,6 +64,7 @@ export default function Home() {
   const [voiceRecording, setVoiceRecording] = useState(false)
   // State for mobile detection (to prevent hydration mismatch)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
+  const [focusedEarthDetails, setFocusedEarthDetails] = useState<FocusedEarthDetails | null>(null)
   const voiceServiceRef = useRef<VoiceService | null>(null)
   const focusTargetsRef = useRef<{ name: string; mesh: THREE.Object3D }[]>([])
   const spinControllerRef = useRef<{ updateDisplay: () => void } | null>(null)
@@ -187,6 +194,11 @@ export default function Home() {
         }
         focusOnObject(mesh, radius)
         setFocusedPlanet(name)
+        if (name.toLowerCase() === 'earth') {
+          setFocusedEarthDetails({ mesh, radiusTjs: radius });
+        } else {
+          setFocusedEarthDetails(null);
+        }
         // Pause spinning when focusing via GUI control
         guiOptions.current.spinPaused = true
         // Reflect in GUI
@@ -196,6 +208,7 @@ export default function Home() {
         // Smooth reset to initial camera state
         resetCamera()
         setFocusedPlanet(null)
+        setFocusedEarthDetails(null);
         // Resume spinning when resetting focus
         guiOptions.current.spinPaused = false
         // Reflect in GUI
@@ -403,6 +416,8 @@ export default function Home() {
       {/* Cesium Earth Integration */}
       <EarthCesiumIntegration
         focusedPlanet={focusedPlanet}
+        threeCamera={threeCameraRef.current}
+        focusedEarthDetails={focusedEarthDetails}
         onCesiumVisibilityChange={setCesiumVisible}
         onTransitionStart={() => {
           console.log('Cesium transition started');
