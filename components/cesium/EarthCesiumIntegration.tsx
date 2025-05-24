@@ -4,6 +4,8 @@ import React from 'react';
 import * as THREE from 'three';
 import { CesiumViewer } from './CesiumViewer';
 import { EarthTransitionButton } from './EarthTransitionButton';
+import { setRadialBlurStrength, setRadialBlurCenter } from '../../lib/three/postprocessingEffects';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 interface ThreeJsViewContext {
   cameraPosition: THREE.Vector3;
@@ -24,6 +26,10 @@ interface EarthCesiumIntegrationProps {
   onTransitionStart?: () => void;
   onTransitionComplete?: () => void;
   onCesiumVisibilityChange?: (visible: boolean) => void;
+  // Blur effects are now controlled internally during transitions
+  earthMesh?: THREE.Object3D | null;
+  renderer?: THREE.WebGLRenderer | null;
+  radialBlurPass?: ShaderPass | null;
 }
 
 export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
@@ -33,50 +39,130 @@ export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
   onTransitionStart,
   onTransitionComplete,
   onCesiumVisibilityChange,
+  earthMesh,
+  renderer,
+  radialBlurPass,
 }) => {
   const [cesiumVisible, setCesiumVisible] = React.useState(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [threeJsViewContextForCesium, setThreeJsViewContextForCesium] = React.useState<ThreeJsViewContext | null>(null);
+  const animationFrameRef = React.useRef<number | null>(null);
 
   // Check if we should show the transition button
   const shouldShowButton = focusedPlanet?.toLowerCase() === 'earth' && !cesiumVisible && !isTransitioning;
 
+  const projectToScreen = React.useCallback((object: THREE.Object3D, camera: THREE.Camera, canvas: HTMLCanvasElement) => {
+    const vector = new THREE.Vector3();
+    object.getWorldPosition(vector);
+    vector.project(camera);
+
+    const widthHalf = canvas.width / 2;
+    const heightHalf = canvas.height / 2;
+
+    return new THREE.Vector2(
+      (vector.x * widthHalf) + widthHalf,
+      -(vector.y * heightHalf) + heightHalf
+    );
+  }, []);
+
   // Start the transition from Three.js to Cesium
   const startTransition = React.useCallback(async () => {
-    if (isTransitioning) return;
+    if (isTransitioning || !threeCamera || !earthMesh || !focusedEarthDetails || !renderer || !radialBlurPass) return;
 
     setIsTransitioning(true);
     onTransitionStart?.();
 
-    if (threeCamera && focusedEarthDetails?.mesh) {
-      const earthWorldPosition = new THREE.Vector3();
-      focusedEarthDetails.mesh.getWorldPosition(earthWorldPosition);
-      
-      setThreeJsViewContextForCesium({
-        cameraPosition: threeCamera.position.clone(),
-        cameraUp: threeCamera.up.clone(),
-        earthCenterTjs: earthWorldPosition,
-        earthRadiusTjs: focusedEarthDetails.radiusTjs,
-      });
-    } else {
-      setThreeJsViewContextForCesium(null);
-    }
+    // Start with no blur - will ramp up gradually
+    setRadialBlurStrength(radialBlurPass, 0);
 
-    // Simple: just show Cesium and let it handle the transition
-    setCesiumVisible(true);
-    
-    // Brief delay for transition effect
-    setTimeout(() => {
-      setIsTransitioning(false);
-      onTransitionComplete?.();
-    }, 500);
-  }, [isTransitioning, onTransitionStart, onTransitionComplete, threeCamera, focusedEarthDetails]);
+    const duration = 3000; // 1.5 seconds
+    const maxBlurStrength = 0.25; // Maximum blur strength
+    let startTime: number | null = null;
+
+    const startPosition = threeCamera.position.clone();
+    const earthSurfaceOffset = 2.0;
+    const targetPosition = new THREE.Vector3();
+    earthMesh.getWorldPosition(targetPosition);
+    const directionToEarth = new THREE.Vector3().subVectors(targetPosition, startPosition).normalize();
+    const distanceToSurface = startPosition.distanceTo(targetPosition) - (focusedEarthDetails.radiusTjs * earthSurfaceOffset);
+    const finalTargetPosition = new THREE.Vector3().copy(startPosition).addScaledVector(directionToEarth, Math.max(0, distanceToSurface));
+    const canvas = renderer.domElement;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsedTime = timestamp - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+
+      // Animate camera position
+      threeCamera.position.lerpVectors(startPosition, finalTargetPosition, progress);
+      threeCamera.lookAt(targetPosition);
+
+      // Gradually increase blur strength throughout entire animation
+      const currentBlurStrength = maxBlurStrength * progress; // 0 to maxBlurStrength over full duration
+      setRadialBlurStrength(radialBlurPass, currentBlurStrength);
+
+      // Optionally update blur center if you want it to follow Earth
+      if (canvas && radialBlurPass) {
+        const screenPos = projectToScreen(earthMesh, threeCamera, canvas);
+        setRadialBlurCenter(radialBlurPass, new THREE.Vector2(screenPos.x / canvas.width, 1.0 - (screenPos.y / canvas.height)));
+      }
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        // Ensure blur is completely off at the end
+        setRadialBlurStrength(radialBlurPass, 0);
+        // Prepare context for Cesium
+        const earthWorldPosition = new THREE.Vector3();
+        focusedEarthDetails.mesh.getWorldPosition(earthWorldPosition);
+        setThreeJsViewContextForCesium({
+          cameraPosition: threeCamera.position.clone(),
+          cameraUp: threeCamera.up.clone(),
+          earthCenterTjs: earthWorldPosition,
+          earthRadiusTjs: focusedEarthDetails.radiusTjs,
+        });
+        setCesiumVisible(true);
+        onCesiumVisibilityChange?.(true);
+        if (canvas) {
+          canvas.style.display = 'none';
+        }
+        setTimeout(() => {
+            setIsTransitioning(false);
+            onTransitionComplete?.();
+        }, 100);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+  }, [
+    isTransitioning, 
+    threeCamera, 
+    earthMesh, 
+    focusedEarthDetails, 
+    onTransitionStart, 
+    onTransitionComplete, 
+    onCesiumVisibilityChange, 
+    projectToScreen,
+    renderer,
+    radialBlurPass
+  ]);
 
   // Reset to Three.js view
   const resetToThreeJS = React.useCallback(() => {
     setCesiumVisible(false);
+    onCesiumVisibilityChange?.(false);
     setIsTransitioning(false);
-  }, []);
+
+    if (renderer?.domElement) {
+      renderer.domElement.style.display = 'block'; // Show Three.js canvas
+    }
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, [renderer, onCesiumVisibilityChange]);
 
   // Handle ESC key to go back to Three.js
   React.useEffect(() => {
@@ -120,18 +206,6 @@ export const EarthCesiumIntegration: React.FC<EarthCesiumIntegrationProps> = ({
           >
             ← Back to Solar System
           </button>
-        </div>
-      )}
-
-      {/* Loading indicator during transition */}
-      {isTransitioning && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-gray-900/90 text-white px-6 py-4 rounded-lg border border-gray-600/20">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-              <span>Transitioning to Earth surface...</span>
-            </div>
-          </div>
         </div>
       )}
     </>

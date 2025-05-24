@@ -24,6 +24,10 @@ import ToggleImageSwitch from '../components/ui/toggle-image-switch'
 import { VoiceService } from '../lib/services/realtime-api-service'
 import { isMobile } from '../lib/utils/mobile'
 import { EarthCesiumIntegration } from '../components/cesium/EarthCesiumIntegration'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { createRadialBlurPass, setRadialBlurCenter } from '../lib/three/postprocessingEffects';
 
 // --- TYPES ---
 interface FocusedEarthDetails {
@@ -74,6 +78,13 @@ export default function Home() {
   const earthMeshRef = useRef<THREE.Object3D | null>(null)
   // State for tracking Cesium visibility
   const [cesiumVisible, setCesiumVisible] = useState(false)
+  // Post-processing refs
+  const composerRef = useRef<EffectComposer | null>(null);
+  const radialBlurPassRef = useRef<ShaderPass | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  // State to control blur from other components - REMOVED (not used dynamically anymore)
+  // const [blurStrength, setBlurStrength] = useState(0.0);
+  const [blurCenter] = useState(new THREE.Vector2(0.5, 0.5));
 
   // Detect mobile after hydration to prevent SSR mismatch
   useEffect(() => {
@@ -142,6 +153,7 @@ export default function Home() {
     threeCameraRef.current = camera
     // Create renderer and attach to canvas
     const renderer = createRenderer(canvasRef.current as HTMLCanvasElement, sizes.width, sizes.height)
+    rendererRef.current = renderer;
     // Initialize label manager for 3D text labels (CSS2D)
     const labelMgr = new LabelManager(containerRef.current!)
     // Set up orbit controls
@@ -150,6 +162,14 @@ export default function Home() {
     initObjectTrackingCamera(camera, controls)
     // Clock for animation timing
     const clock = new Clock()
+
+    // Post-processing
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const radialBlurPass = createRadialBlurPass();
+    composer.addPass(radialBlurPass);
+    composerRef.current = composer;
+    radialBlurPassRef.current = radialBlurPass;
 
     // --- SOLAR SYSTEM OBJECTS ---
     // Calculate scaling factors for solar system objects
@@ -230,6 +250,13 @@ export default function Home() {
       const deltaSec = clock.getDelta() * timeMultiplier
       // Update planet/sun positions and rotations
       updateSolarSystem([solarParams.sun, ...solarParams.planets], meshes, deltaSec, { orbitPaused: guiOptions.current.orbitPaused, spinPaused: guiOptions.current.spinPaused })
+      
+      // Update blur pass uniforms if they exist
+      if (radialBlurPassRef.current) {
+        // Dynamic blur strength removed - only used during transitions now
+        setRadialBlurCenter(radialBlurPassRef.current, blurCenter);
+      }
+
       // toggle between tracking and OrbitControls update
       if (updateTrackingCamera()) {
         // camera tracking active, skip control damping
@@ -237,7 +264,9 @@ export default function Home() {
         controls.update()
       }
       // Render the scene
-      renderer.render(scene, camera)
+      // renderer.render(scene, camera) // Old rendering
+      composerRef.current?.render() // New rendering with post-processing
+
       // Render 3D text labels (CSS2D)
       labelMgr.render(scene, camera)
       // Schedule next frame
@@ -260,8 +289,17 @@ export default function Home() {
       })
       // Dispose of label manager and its DOM elements
       labelMgr.dispose()
+      // Dispose of composer
+      composerRef.current?.dispose();
     }
   }, [planetSpread])
+
+  // Effect to update blur center when state changes
+  useEffect(() => {
+    if (radialBlurPassRef.current) {
+      setRadialBlurCenter(radialBlurPassRef.current, blurCenter);
+    }
+  }, [blurCenter]);
 
   // Palm open/closed detection for orbit and spin pause
   usePalmPause(
@@ -419,12 +457,9 @@ export default function Home() {
         threeCamera={threeCameraRef.current}
         focusedEarthDetails={focusedEarthDetails}
         onCesiumVisibilityChange={setCesiumVisible}
-        onTransitionStart={() => {
-          console.log('Cesium transition started');
-        }}
-        onTransitionComplete={() => {
-          console.log('Cesium transition completed');
-        }}
+        earthMesh={earthMeshRef.current}
+        renderer={rendererRef.current}
+        radialBlurPass={radialBlurPassRef.current}
       />
     </>
   )
