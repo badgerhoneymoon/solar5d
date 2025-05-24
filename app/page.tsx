@@ -23,6 +23,7 @@ import PalmPauseDebugOverlay from '../components/PalmPauseDebugOverlay'
 import ToggleImageSwitch from '../components/ui/toggle-image-switch'
 import { VoiceService } from '../lib/services/realtime-api-service'
 import { isMobile } from '../lib/utils/mobile'
+import { EarthCesiumIntegration } from '../components/cesium/EarthCesiumIntegration'
 
 // --- CONSTANTS ---
 const TIME_MULTIPLIER = 1e5
@@ -61,6 +62,11 @@ export default function Home() {
   const focusTargetsRef = useRef<{ name: string; mesh: THREE.Object3D }[]>([])
   const spinControllerRef = useRef<{ updateDisplay: () => void } | null>(null)
   const [hardStopWarning, setHardStopWarning] = useState<string | null>(null)
+  // Refs for Cesium integration
+  const threeCameraRef = useRef<THREE.PerspectiveCamera | null>(null)
+  const earthMeshRef = useRef<THREE.Object3D | null>(null)
+  // State for tracking Cesium visibility
+  const [cesiumVisible, setCesiumVisible] = useState(false)
 
   // Detect mobile after hydration to prevent SSR mismatch
   useEffect(() => {
@@ -125,6 +131,8 @@ export default function Home() {
     // Create camera and set to angled view
     const camera = createSolarCamera(sizes.width, sizes.height)
     scene.add(camera)
+    // Store camera reference for Cesium integration
+    threeCameraRef.current = camera
     // Create renderer and attach to canvas
     const renderer = createRenderer(canvasRef.current as HTMLCanvasElement, sizes.width, sizes.height)
     // Initialize label manager for 3D text labels (CSS2D)
@@ -147,6 +155,11 @@ export default function Home() {
     )
     // Add all meshes to the scene
     meshes.forEach(mesh => scene.add(mesh))
+    // Store Earth mesh reference for Cesium integration
+    const earthMesh = meshes.find(mesh => mesh.name.toLowerCase() === 'earth')
+    if (earthMesh) {
+      earthMeshRef.current = earthMesh
+    }
     // Add CSS2D labels for each mesh (planet/sun)
     labelMgr.addLabelsForMeshes(scene, meshes, { fontSize: LABEL_FONT_SIZE, padding: LABEL_PADDING })
     // --- GUI FOR FOCUS CONTROLS ---
@@ -314,7 +327,7 @@ export default function Home() {
           style={CANVAS_STYLE}
         />
       </div>
-      <Overlay planets={solarParams.planets} focusedPlanet={focusedPlanet} />
+      <Overlay planets={solarParams.planets} focusedPlanet={focusedPlanet} cesiumVisible={cesiumVisible} />
       {/* Voice mode button */}
       <ToggleImageSwitch
         enabled={voiceModeEnabled}
@@ -386,6 +399,18 @@ export default function Home() {
           </div>
         </div>
       )}
+      
+      {/* Cesium Earth Integration */}
+      <EarthCesiumIntegration
+        focusedPlanet={focusedPlanet}
+        onCesiumVisibilityChange={setCesiumVisible}
+        onTransitionStart={() => {
+          console.log('Cesium transition started');
+        }}
+        onTransitionComplete={() => {
+          console.log('Cesium transition completed');
+        }}
+      />
     </>
   )
 }

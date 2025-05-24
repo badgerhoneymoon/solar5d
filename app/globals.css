@@ -118,3 +118,63 @@ body {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
 }
+
+/* Cesium specific styles */
+.cesium-viewer {
+  width: 100vw !important;
+  height: 100vh !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cesium-viewer canvas {
+  width: 100vw !important;
+  height: 100vh !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cesium-viewer-cesiumWidgetContainer {
+  width: 100vw !important;
+  height: 100vh !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Remove Cesium credit container */
+.cesium-viewer .cesium-credit-container {
+  display: none !important;
+}
+
+/* Pulse animation for voice recording */
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Fade in animation for transition button */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.transition-button-enter {
+  animation: fadeInUp 0.5s ease-out;
+}

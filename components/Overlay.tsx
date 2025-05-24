@@ -11,9 +11,10 @@ interface Planet {
 interface OverlayProps {
   planets: Planet[]
   focusedPlanet?: string | null
+  cesiumVisible?: boolean
 }
 
-const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
+const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet, cesiumVisible = false }) => {
   const [mounted, setMounted] = useState(false)
   
   useEffect(() => {
@@ -39,7 +40,7 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
 
   return (
     <>
-      {focusedPlanet && (() => {
+      {!cesiumVisible && focusedPlanet && (() => {
         // Try to find in planets, then fall back to sun
         let p = planets.find(p => p.name === focusedPlanet)
         let fact = p?.unusual_facts?.[0]
@@ -79,8 +80,8 @@ const Overlay: React.FC<OverlayProps> = ({ planets, focusedPlanet }) => {
           </div>
         )
       })()}
-      {/* Hide scale/range overlay on mobile devices */}
-      {mounted && !isMobile() && (
+      {/* Hide scale/range overlay on mobile devices and in cesium view */}
+      {mounted && !isMobile() && !cesiumVisible && (
         <div
           style={{
             position: 'fixed',
