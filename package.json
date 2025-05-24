@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run copy-cesium",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "copy-cesium": "mkdir -p public/cesium && cp -r node_modules/cesium/Build/Cesium/Workers public/cesium/ && cp -r node_modules/cesium/Build/Cesium/ThirdParty public/cesium/ && cp -r node_modules/cesium/Build/Cesium/Assets public/cesium/ && cp -r node_modules/cesium/Build/Cesium/Widgets public/cesium/"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
