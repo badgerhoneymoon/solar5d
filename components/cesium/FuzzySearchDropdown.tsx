@@ -152,7 +152,7 @@ export const FuzzySearchDropdown: React.FC<FuzzySearchDropdownProps> = ({
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(debouncedQuery)}&limit=8`, {
+        const response = await fetch(`/api/geocode?q=${encodeURIComponent(debouncedQuery)}&limit=8&accept-language=en`, {
           signal: abortControllerRef.current.signal
         });
         

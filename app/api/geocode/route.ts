@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
   const limit = searchParams.get('limit') || '8';
+  const acceptLanguage = searchParams.get('accept-language') || 'en';
   
   if (!query) {
     return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     );
   }
   
-  const cacheKey = `${query}-${limit}`;
+  const cacheKey = `${query}-${limit}-${acceptLanguage}`;
   const cached = searchCache.get(cacheKey);
   const now = Date.now();
   
@@ -76,6 +77,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set('q', query);
     url.searchParams.set('limit', limit);
     url.searchParams.set('dedupe', '1');
+    url.searchParams.set('accept-language', acceptLanguage);
     
     const response = await fetch(url.toString(), {
       headers: { 'User-Agent': 'Solar5D-CesiumApp/1.0 (contact@solar5d.app)' },
