@@ -27,7 +27,7 @@ export function createCesiumViewer(containerId: string): Cesium.Viewer {
 
     // Replace default imagery with Bing Maps with labels
     viewer.imageryLayers.removeAll();
-    Cesium.IonImageryProvider.fromAssetId(2) // Bing Maps Imagery (no labels)
+    Cesium.IonImageryProvider.fromAssetId(3) // Bing Maps Imagery (with labels)
       .then((ionImageryProvider) => {
         if (!viewer.isDestroyed()) {
           viewer.imageryLayers.addImageryProvider(ionImageryProvider);
