@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { CESIUM_CONFIG, CAMERA_POSITION, CAMERA_ALTITUDES, CAMERA_ANGLES, ANIMATION_TIMINGS } from './cesiumConfig';
+import { CESIUM_CONFIG } from './cesiumConfig';
 
 /**
  * Creates a CesiumJS viewer with premium Ion assets when token is available:
@@ -10,8 +10,6 @@ import { CESIUM_CONFIG, CAMERA_POSITION, CAMERA_ALTITUDES, CAMERA_ANGLES, ANIMAT
 export function createCesiumViewer(containerId: string): Cesium.Viewer {
   const viewer = new Cesium.Viewer(containerId, {
     ...CESIUM_CONFIG,
-    // Use default imagery (OpenStreetMap) that comes with Cesium
-    // Don't specify terrainProvider to use default
   });
 
   // Add Cesium World Terrain if Ion token is available
@@ -21,7 +19,7 @@ export function createCesiumViewer(containerId: string): Cesium.Viewer {
     viewer.scene.setTerrain(
       Cesium.Terrain.fromWorldTerrain({
         requestWaterMask: true, // Show water bodies with realistic rendering
-        requestVertexNormals: true, // Enable proper lighting on terrain
+        requestVertexNormals: false, // Enable proper lighting on terrain
       })
     );
 
@@ -45,28 +43,7 @@ export function createCesiumViewer(containerId: string): Cesium.Viewer {
   viewer.scene.globe.show = true;
   
   // Enable depth testing against terrain for realistic occlusion
-  viewer.scene.globe.depthTestAgainstTerrain = true;
-
-  // Start from a nice Earth overview position
-  viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(
-      CAMERA_POSITION.longitude, 
-      CAMERA_POSITION.latitude, 
-      CAMERA_ALTITUDES.SPACE_OVERVIEW
-    ),
-    orientation: {
-      heading: 0,
-      pitch: Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN),
-      roll: 0,
-    }
-  });
-
-  // Force initial resize to ensure proper canvas dimensions
-  setTimeout(() => {
-    if (!viewer.isDestroyed()) {
-      viewer.resize();
-    }
-  }, ANIMATION_TIMINGS.RESIZE_DELAY);
+  viewer.scene.globe.depthTestAgainstTerrain = false;
 
   return viewer;
 } 

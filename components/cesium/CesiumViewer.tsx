@@ -3,9 +3,9 @@
 import React, { useEffect, useRef } from 'react';
 import * as Cesium from 'cesium';
 import * as THREE from 'three';
-import { createCesiumViewer, resetCameraToInitialPosition, smoothFlyTo, flyToUserLocation } from '../../lib/cesium';
+import { createCesiumViewer, smoothFlyTo, flyToUserLocation } from '../../lib/cesium';
 import { FuzzySearchDropdown } from './FuzzySearchDropdown';
-import { CAMERA_ALTITUDES, CAMERA_POSITION, ANIMATION_TIMINGS } from '../../lib/cesium/cesiumConfig';
+import { CAMERA_ALTITUDES, CAMERA_BALI_POSITION, ANIMATION_TIMINGS } from '../../lib/cesium/cesiumConfig';
 
 // Add THREE to the global scope for Cesium integration if not already present
 if (typeof window !== 'undefined' && !(window as Window & { THREE?: typeof THREE }).THREE) {
@@ -191,11 +191,21 @@ export const CesiumViewer: React.FC<CesiumViewerProps> = ({
 
         } catch (e) {
           console.error('Error applying Three.js view context to Cesium:', e);
-          resetCameraToInitialPosition(viewer); // Fallback
+          smoothFlyTo(
+            viewer,
+            CAMERA_BALI_POSITION.longitude,
+            CAMERA_BALI_POSITION.latitude,
+            CAMERA_ALTITUDES.SPACE_OVERVIEW
+          ); // Fallback
         }
       } else {
         // No Three.js context, try to fly to user's location
-        resetCameraToInitialPosition(viewer);
+        smoothFlyTo(
+          viewer,
+          CAMERA_BALI_POSITION.longitude,
+          CAMERA_BALI_POSITION.latitude,
+          CAMERA_ALTITUDES.SPACE_OVERVIEW
+        );
       }
       
       // Force resize to ensure proper dimensions
@@ -215,9 +225,9 @@ export const CesiumViewer: React.FC<CesiumViewerProps> = ({
               // Fallback to Bali if user location fails
               smoothFlyTo(
                 viewer, 
-                CAMERA_POSITION.longitude, 
-                CAMERA_POSITION.latitude, 
-                CAMERA_POSITION.height,
+                CAMERA_BALI_POSITION.longitude, 
+                CAMERA_BALI_POSITION.latitude, 
+                CAMERA_BALI_POSITION.height,
                 ANIMATION_TIMINGS.DEFAULT_FLY_DURATION
               ).then(() => {
                 onTransitionComplete?.();

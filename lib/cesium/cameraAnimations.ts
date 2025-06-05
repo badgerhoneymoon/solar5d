@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { CAMERA_ALTITUDES, CAMERA_ANGLES, CAMERA_POSITION, ANIMATION_TIMINGS, CAMERA_OFFSET } from './cesiumConfig';
+import { CAMERA_ALTITUDES, CAMERA_ANGLES, ANIMATION_TIMINGS, CAMERA_OFFSET } from './cesiumConfig';
 
 /**
  * Smooth easing function for camera transitions
@@ -10,14 +10,23 @@ function easeInOutCubic(t: number): number {
 
 /**
  * Smooth flyTo with 3-phase trajectory: UP -> TRANSFER -> DOWN
+ * Used after search and after the first landing
  */
 export function smoothFlyTo(
   viewer: Cesium.Viewer, 
   longitude: number, 
   latitude: number, 
   height: number = CAMERA_ALTITUDES.SEARCH_RESULT,
-  duration: number = ANIMATION_TIMINGS.SEARCH_FLY_DURATION
+  duration: number = ANIMATION_TIMINGS.DEFAULT_FLY_DURATION
 ): Promise<void> {
+  // --- Animation phase ratios and pitch transition constants ---
+  const PHASE_1_DURATION_RATIO = 0.33; // Go Up
+  const PHASE_2_DURATION_RATIO = 0.34; // Transfer
+  const PHASE_3_DURATION_RATIO = 0.33; // Descend
+
+  const PITCH_TRANSITION_START_PROGRESS = 0.4; // Start pitching down after 40% of phase 3 is complete
+  const PITCH_TRANSITION_DURATION_PROGRESS = 1.0 - PITCH_TRANSITION_START_PROGRESS; // Remaining 60% of phase 3 for pitch
+
   return new Promise((resolve) => {
     const startPosition = viewer.camera.position.clone();
     const startPitch = viewer.camera.pitch;
@@ -29,18 +38,26 @@ export function smoothFlyTo(
     
     // Phase positions - clean vertical up, horizontal transfer, vertical down
     const highAltitudeStart = Cesium.Cartesian3.fromDegrees(currentLon, currentLat, CAMERA_ALTITUDES.SPACE_OVERVIEW);
+    
     const highAltitudeEnd = Cesium.Cartesian3.fromDegrees(longitude, latitude, CAMERA_ALTITUDES.SPACE_OVERVIEW);
     
     // Calculate offset camera position for landing
     const offsetBearing = Cesium.Math.toRadians(CAMERA_OFFSET.LANDING_BEARING);
     
     // Calculate offset position using bearing and distance
-    const offsetLongitude = longitude + (CAMERA_OFFSET.LANDING_DISTANCE / 111320) * Math.sin(offsetBearing) / Math.cos(Cesium.Math.toRadians(latitude));
-    const offsetLatitude = latitude + (CAMERA_OFFSET.LANDING_DISTANCE / 111320) * Math.cos(offsetBearing);
+    const offsetLongitude = longitude;
+    
+    const offsetLatitude = latitude + (CAMERA_OFFSET.LANDING_DISTANCE / 111320) * Math.cos(offsetBearing); // 1 degree lat = 111km
+    
     const finalCameraPosition = Cesium.Cartesian3.fromDegrees(offsetLongitude, offsetLatitude, height);
 
     const startTime = performance.now();
     const durationMs = duration * 1000;
+
+    // Cumulative end times for each phase (as a ratio of total duration)
+    const PHASE_1_END_TIME_RATIO = PHASE_1_DURATION_RATIO;
+    const PHASE_2_END_TIME_RATIO = PHASE_1_END_TIME_RATIO + PHASE_2_DURATION_RATIO;
+    // Phase 3 ends at 1.0 (total duration)
 
     function animate() {
       const elapsed = performance.now() - startTime;
@@ -54,36 +71,39 @@ export function smoothFlyTo(
       let currentPosition: Cesium.Cartesian3;
       let currentPitch: number;
 
-      if (t < 0.33) {
-        // Phase 1: GO UP (reverse descent pattern)
-        const phase1T = easeInOutCubic(t / 0.33);
-        currentPosition = Cesium.Cartesian3.lerp(startPosition, highAltitudeStart, phase1T, new Cesium.Cartesian3());
-        currentPitch = Cesium.Math.lerp(startPitch, Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN), phase1T);
-      } else if (t < 0.67) {
+      if (t < PHASE_1_END_TIME_RATIO) {
+        // Phase 1: GO UP
+        const phase1Progress = t / PHASE_1_DURATION_RATIO;
+        const easedPhase1Progress = easeInOutCubic(phase1Progress);
+        currentPosition = Cesium.Cartesian3.lerp(startPosition, highAltitudeStart, easedPhase1Progress, new Cesium.Cartesian3());
+        currentPitch = Cesium.Math.lerp(startPitch, Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN), easedPhase1Progress);
+      } else if (t < PHASE_2_END_TIME_RATIO) {
         // Phase 2: TRANSFER horizontally at high altitude
-        const phase2T = easeInOutCubic((t - 0.33) / 0.34);
+        const phase2Progress = (t - PHASE_1_END_TIME_RATIO) / PHASE_2_DURATION_RATIO;
+        const easedPhase2Progress = easeInOutCubic(phase2Progress);
         
-        // Interpolate lon/lat at constant SPACE_OVERVIEW altitude
-        const transferStartLon = currentLon; // Lon where camera ascended from (original start lon)
-        const transferStartLat = currentLat; // Lat where camera ascended from (original start lat)
-
-        const interpLon = Cesium.Math.lerp(transferStartLon, longitude, phase2T); // longitude is target
-        const interpLat = Cesium.Math.lerp(transferStartLat, latitude, phase2T);   // latitude is target
+        const interpLon = Cesium.Math.lerp(currentLon, longitude, easedPhase2Progress);
+        const interpLat = Cesium.Math.lerp(currentLat, latitude, easedPhase2Progress);
         
         currentPosition = Cesium.Cartesian3.fromDegrees(interpLon, interpLat, CAMERA_ALTITUDES.SPACE_OVERVIEW);
-        currentPitch = Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN); // Stay at look-down
+        currentPitch = Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN); // Maintain look-down pitch
       } else {
         // Phase 3: DESCEND to target with smooth pitch transition
-        const phase3T = (t - 0.67) / 0.33;
-        const easedPhase3T = easeInOutCubic(phase3T);
-        currentPosition = Cesium.Cartesian3.lerp(highAltitudeEnd, finalCameraPosition, easedPhase3T, new Cesium.Cartesian3());
+        const phase3Progress = (t - PHASE_2_END_TIME_RATIO) / PHASE_3_DURATION_RATIO;
+        const easedPhase3Progress = easeInOutCubic(phase3Progress);
+        currentPosition = Cesium.Cartesian3.lerp(highAltitudeEnd, finalCameraPosition, easedPhase3Progress, new Cesium.Cartesian3());
         
-        // Pitch transition: start changing at 40% of descent phase
-        const pitchProgress = phase3T < 0.4 ? 0 : easeInOutCubic((phase3T - 0.4) / 0.6);
+        let pitchTransitionProgress = 0;
+        if (phase3Progress >= PITCH_TRANSITION_START_PROGRESS) {
+          pitchTransitionProgress = easeInOutCubic(
+            (phase3Progress - PITCH_TRANSITION_START_PROGRESS) / PITCH_TRANSITION_DURATION_PROGRESS
+          );
+        }
+        
         currentPitch = Cesium.Math.lerp(
           Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN),
           Cesium.Math.toRadians(CAMERA_ANGLES.HORIZON_VIEW),
-          pitchProgress
+          pitchTransitionProgress
         );
       }
 
@@ -117,7 +137,7 @@ export function smoothFlyTo(
 export function flyToUserLocation(
   viewer: Cesium.Viewer,
   height: number = CAMERA_ALTITUDES.SEARCH_RESULT,
-  duration: number = ANIMATION_TIMINGS.SEARCH_FLY_DURATION
+  duration: number = ANIMATION_TIMINGS.DEFAULT_FLY_DURATION
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -164,25 +184,5 @@ export function flyToUserLocation(
         reject(new Error(errorMessage));
       }
     );
-  });
-}
-
-/**
- * Resets the camera to the initial overview position
- */
-export function resetCameraToInitialPosition(viewer: Cesium.Viewer): void {
-  console.log('🔄 Resetting camera to initial position');
-  
-  viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(
-      CAMERA_POSITION.longitude, 
-      CAMERA_POSITION.latitude, 
-      CAMERA_ALTITUDES.SPACE_OVERVIEW
-    ),
-    orientation: {
-      heading: 0,
-      pitch: Cesium.Math.toRadians(CAMERA_ANGLES.LOOK_DOWN),
-      roll: 0,
-    }
   });
 } 

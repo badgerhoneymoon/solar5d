@@ -24,18 +24,16 @@ export const CAMERA_ANGLES = {
 } as const;
 
 export const CAMERA_OFFSET = {
-  LANDING_DISTANCE: 200000, // meters - how far back to position camera from target
+  LANDING_DISTANCE: 200_000, // meters - how far back to position camera from target
   LANDING_BEARING: 180, // degrees - bearing from target (180 = south, camera looks north at target)
 } as const;
 
 export const ANIMATION_TIMINGS = {
-  RESIZE_DELAY: 100, // ms - delay before forcing resize
-  DEFAULT_FLY_DURATION: 3, // seconds - default camera transition time
-  SEARCH_FLY_DURATION: 4, // seconds - search flight duration (up-transfer-down)
+  DEFAULT_FLY_DURATION: 4, // seconds - default camera transition time
 } as const;
 
 // Camera position coordinates (positioned south of Bali for northward view)
-export const CAMERA_POSITION = {
+export const CAMERA_BALI_POSITION = {
   longitude: 115.2, // Same longitude as Bali
   latitude: -12.0,  // 3.5° south of Bali for oblique northward view
   height: CAMERA_ALTITUDES.BALI_VIEW,

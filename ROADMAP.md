@@ -11,7 +11,10 @@
 - [x] Add unusual facts overlay for each planet
 - [ ] In voice mode, how about we would add streaming text of summary of the response
 - [] Asteroid belt
-- [] Earth can be zoomed in using Celesium.js
+- [x] Earth can be zoomed in using Celesium.js
+- [] Night view in Cesium.js
+- [] Earth - add day / night textures to reflect the sun position
+- [] Imitate Starship intercepting Mars orbit
 
 ## User requests
 - [ ] Use mouse wheel to change planets
