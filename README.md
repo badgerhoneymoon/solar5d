@@ -36,6 +36,12 @@ Read about the technical development process, challenges, and AI-assisted coding
 
 ### 🕹️ **Interactive Controls & Navigation**
 - **Object-Tracking Camera:** Smooth focus transitions between celestial bodies with `OrbitControls` for zoom, pan, and rotation.
+
+<div align="center">
+  <img src="public/screenshots/Cam_tracking.gif" alt="Camera Tracking Demo" width="600">
+  <br><em>Click any planet to smoothly focus and track it</em>
+</div>
+
 - **Timeline & Animation Control:** Configurable time scales (up to 100,000x speed) and pause/resume controls using `lil-gui` interface.
 - **Gesture Controls:** MediaPipe hand tracking for gesture detection with "Palm Pause" animation control.
 - **Mobile Support:** Touch-friendly interface with responsive styling.
