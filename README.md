@@ -30,6 +30,12 @@ Read about the technical development process, challenges, and AI-assisted coding
 
 ### 🌌 **Core 3D Solar System & Earth Visualization**
 - **Interactive Solar System:** 3D solar system with logarithmic radius scaling and linear distance scaling for visual clarity. Smooth orbital motion and rotation based on astronomical data from `solar-params.json`.
+
+<div align="center">
+  <img src="public/screenshots/mars_rotation.gif" alt="Mars Rotation Demo" width="400">
+  <br><em>Planetary rotation based on real astronomical data</em>
+</div>
+
 - **High-Quality Visuals:** 8K starfield skybox, 2K planetary textures (courtesy of [Solar System Scope](https://solarsystemscope.com/textures)), and shader-based post-processing effects including radial blur.
 - **Cesium Earth Integration:** Transition from solar system view to detailed 3D Earth with global navigation, photorealistic imagery, height mapping, and multi-scale rendering.
 - **Efficient WebGL Rendering:** Three.js with performance-optimized `MeshBasicMaterial` and efficient texture loading.
@@ -200,7 +206,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🤝 Connect
 
-Created by **Denis Burkatsky** - Building the future of interactive space exploration
+Created by **Denis Burkatsky** - Merging latest technologies in educational 3D visualization
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin)](https://www.linkedin.com/in/burkatskydan/)
 [![X](https://img.shields.io/badge/-000000?logo=x&logoColor=white)](https://x.com/DBurkatsky)
