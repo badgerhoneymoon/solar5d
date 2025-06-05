@@ -16,11 +16,21 @@
 
 ---
 
+## 📖 Development Story
+
+Read about the technical development process, challenges, and AI-assisted coding approach behind this project:
+
+**[Vibe-Coding the Cosmos →](https://bip2.substack.com/p/vibe-coding-the-cosmos)**
+
+*Detailed breakdown of Three.js implementation, MediaPipe gesture detection, OpenAI Realtime API integration, and the "vibe-coding" development methodology.*
+
+---
+
 ## ✨ Features
 
 ### 🌌 **Core 3D Solar System & Earth Visualization**
 - **Interactive Solar System:** 3D solar system with logarithmic radius scaling and linear distance scaling for visual clarity. Smooth orbital motion and rotation based on astronomical data from `solar-params.json`.
-- **High-Quality Visuals:** 8K starfield skybox, 2K planetary textures, and shader-based post-processing effects including radial blur.
+- **High-Quality Visuals:** 8K starfield skybox, 2K planetary textures (courtesy of [Solar System Scope](https://solarsystemscope.com/textures)), and shader-based post-processing effects including radial blur.
 - **Cesium Earth Integration:** Transition from solar system view to detailed 3D Earth with global navigation, photorealistic imagery, height mapping, and multi-scale rendering.
 - **Efficient WebGL Rendering:** Three.js with performance-optimized `MeshBasicMaterial` and efficient texture loading.
 
