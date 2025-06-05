@@ -32,8 +32,8 @@ Read about the technical development process, challenges, and AI-assisted coding
 - **Interactive Solar System:** 3D solar system with logarithmic radius scaling and linear distance scaling for visual clarity. Smooth orbital motion and rotation based on astronomical data from `solar-params.json`.
 
 <div align="center">
-  <img src="public/screenshots/mars_rotation.gif" alt="Mars Rotation Demo" width="400">
-  <br><em>Planetary rotation based on real astronomical data</em>
+  <img src="public/screenshots/mars_rotation.gif" alt="Mars Rotation Demo" width="600">
+  <br><em>Planetary rotation with astronomical data</em>
 </div>
 
 - **High-Quality Visuals:** 8K starfield skybox, 2K planetary textures (courtesy of [Solar System Scope](https://solarsystemscope.com/textures)), and shader-based post-processing effects including radial blur.
@@ -45,7 +45,7 @@ Read about the technical development process, challenges, and AI-assisted coding
 
 <div align="center">
   <img src="public/screenshots/Cam_tracking.gif" alt="Camera Tracking Demo" width="600">
-  <br><em>Click any planet to smoothly focus and track it</em>
+  <br><em>Camera tracking to focused planet</em>
 </div>
 
 - **Timeline & Animation Control:** Configurable time scales (up to 100,000x speed) and pause/resume controls using `lil-gui` interface.
