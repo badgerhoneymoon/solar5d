@@ -198,12 +198,6 @@ npm run lint         # Run ESLint
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🤝 Connect
 
 Created by **Denis Burkatsky** - Merging latest technologies in educational 3D visualization
